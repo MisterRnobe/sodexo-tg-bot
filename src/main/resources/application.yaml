@@ -1,0 +1,14 @@
+#sodexoBot
+quarkus:
+  mongodb:
+    connection-string: mongodb://sodexoBot:sodexoBot@localhost:27017/sodexoBot
+    database: sodexoBot
+
+telegram:
+  bot:
+    username: Sodexo bot
+    token: ${BOT_TOKEN}
+ru:
+  nmedvedev:
+    rest:
+      SodexoClient/mp-rest/uri: https://restaurantpass.gift-cards.ru/
