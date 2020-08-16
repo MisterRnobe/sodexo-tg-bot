@@ -31,7 +31,7 @@ class RemoveCardHandlerTest {
 
         var actual = removeCardHandler.handle(CHAT, "").await().indefinitely();
 
-        assertEquals("Карта " + CARD + " удалена", actual.getText());
+        assertEquals("Карта " + CARD + " удалена, введите новую", actual.getText());
         verify(userRepository, times(1))
                 .persistOrUpdate(UserDb.builder().chatId(CHAT).build());
     }

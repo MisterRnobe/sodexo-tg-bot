@@ -13,6 +13,6 @@ class StartCommandHandlerTest {
     void shouldReturnProperTextForStartCommand() {
         var response = startCommandHandler.handle(0L, "");
 
-        assertEquals(Response.fromText("Please, enter your Sodexo card number!"), response.await().indefinitely());
+        assertEquals(Response.fromText("Пожалуйста, введите номер вашей карты"), response.await().indefinitely());
     }
 }
