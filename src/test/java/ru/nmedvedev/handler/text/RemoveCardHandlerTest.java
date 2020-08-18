@@ -25,7 +25,7 @@ class RemoveCardHandlerTest {
     @Test
     void shouldRemoveCardForUserAndReturnRemovedMessage() {
         when(userRepository.findByChatId(CHAT))
-                .thenReturn(Uni.createFrom().item(new UserDb(CHAT, CARD, true)));
+                .thenReturn(Uni.createFrom().item(UserDb.builder().chatId(CHAT).card(CARD).build()));
         when(userRepository.persistOrUpdate((UserDb) any()))
                 .thenReturn(Uni.createFrom().item(() -> null));
 
@@ -33,13 +33,13 @@ class RemoveCardHandlerTest {
 
         assertEquals("Карта " + CARD + " удалена", actual.getText());
         verify(userRepository, times(1))
-                .persistOrUpdate(new UserDb(CHAT, null, true));
+                .persistOrUpdate(UserDb.builder().chatId(CHAT).build());
     }
 
     @Test
     void shouldSaveNothingAndReturnCardIsNotSetMessageIfCardIsNotPresent() {
         when(userRepository.findByChatId(CHAT))
-                .thenReturn(Uni.createFrom().item(new UserDb(CHAT, null, true)));
+                .thenReturn(Uni.createFrom().item(new UserDb()));
 
         var actual = removeCardHandler.handle(CHAT, "").await().indefinitely();
 

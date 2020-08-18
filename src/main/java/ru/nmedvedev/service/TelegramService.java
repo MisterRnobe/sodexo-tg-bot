@@ -1,5 +1,6 @@
 package ru.nmedvedev.service;
 
+import io.smallrye.mutiny.Uni;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -9,6 +10,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.nmedvedev.config.properties.TelegramBotProperties;
 import ru.nmedvedev.service.converter.ResponseToEditMessageTextConverter;
 import ru.nmedvedev.service.converter.ResponseToSendMessageConverter;
+import ru.nmedvedev.view.Response;
 
 import java.io.Serializable;
 import java.time.Duration;
@@ -16,7 +18,7 @@ import java.time.Duration;
 
 @Slf4j
 @RequiredArgsConstructor
-public class TelegramReceiver extends TelegramLongPollingBot {
+public class TelegramService extends TelegramLongPollingBot {
 
     private final ResponseToEditMessageTextConverter responseToEditMessageTextConverter;
     private final ResponseToSendMessageConverter responseToSendMessageConverter;
@@ -75,4 +77,7 @@ public class TelegramReceiver extends TelegramLongPollingBot {
         return this.execute(m);
     }
 
+    public Uni<Void> sendMessage(long chatId, Response response) {
+        return Uni.createFrom().voidItem();
+    }
 }

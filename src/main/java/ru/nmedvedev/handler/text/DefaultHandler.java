@@ -50,7 +50,7 @@ public class DefaultHandler implements InputTextHandler {
                 return sodexoClient.getByCard(noSpacesCard)
                         .flatMap(sodexoResponse -> {
                             if (sodexoResponse.getStatus().equals("OK")) {
-                                var userDb = new UserDb(chatId, noSpacesCard, byChatId == null ? false : byChatId.getSubscribed());
+                                var userDb = new UserDb(chatId, noSpacesCard, byChatId == null ? false : byChatId.getSubscribed(), null);
                                 userDb.id = byChatId == null ? null : byChatId.id;
                                 return userRepository.persistOrUpdate(userDb)
                                         .map(v -> Response.withKeyboardButton("Я сохранил карту " + noSpacesCard, replyButtonsProvider.provideMenuButtons()));

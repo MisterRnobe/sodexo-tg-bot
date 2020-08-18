@@ -1,6 +1,7 @@
 package ru.nmedvedev.repository;
 
 import io.quarkus.mongodb.panache.reactive.ReactivePanacheMongoRepository;
+import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import ru.nmedvedev.model.UserDb;
 
@@ -14,4 +15,7 @@ public class UserRepository implements ReactivePanacheMongoRepository<UserDb> {
         return find("chatId", chatId).firstResult();
     }
 
+    public Multi<UserDb> findSubscribedWithCard() {
+        return Multi.createFrom().empty();
+    }
 }

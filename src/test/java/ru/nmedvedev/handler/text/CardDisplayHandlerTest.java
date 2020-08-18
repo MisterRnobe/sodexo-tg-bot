@@ -30,11 +30,11 @@ class CardDisplayHandlerTest {
     private ReplyButtonsProvider replyButtonsProvider;
 
     @Test
-    void shouldReturnCardWithButtons() {
+    void shouldReturnCardWithButtonsIfCardIsPresent() {
         var buttons = List.of("Elem1", "elem2");
 
         when(userRepository.findByChatId(CHAT))
-                .thenReturn(Uni.createFrom().item(new UserDb(CHAT, CARD, false)));
+                .thenReturn(Uni.createFrom().item(UserDb.builder().card(CARD).build()));
         when(replyButtonsProvider.provideMenuButtons())
                 .thenReturn(buttons);
 
@@ -47,7 +47,7 @@ class CardDisplayHandlerTest {
     @Test
     void shouldReturnErrorMessageWithNoButtonsIfCardIsNotPresent() {
         when(userRepository.findByChatId(CHAT))
-                .thenReturn(Uni.createFrom().item(new UserDb(CHAT, null, false)));
+                .thenReturn(Uni.createFrom().item(new UserDb()));
 
         var actual = handler.handle(CHAT, "").await().indefinitely();
 

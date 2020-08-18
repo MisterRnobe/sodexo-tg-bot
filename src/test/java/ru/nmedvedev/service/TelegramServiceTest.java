@@ -19,9 +19,9 @@ import static org.mockito.Mockito.*;
 import static ru.nmedvedev.Helper.CHAT;
 
 @ExtendWith(MockitoExtension.class)
-class TelegramReceiverTest {
+class TelegramServiceTest {
 
-    private TelegramReceiver telegramReceiver;
+    private TelegramService telegramService;
 
     private ResponseToEditMessageTextConverter responseToEditMessageTextConverter;
     private ResponseToSendMessageConverter responseToSendMessageConverter;
@@ -34,7 +34,7 @@ class TelegramReceiverTest {
 
     @BeforeEach
     void setUp() {
-        telegramReceiver = new TelegramReceiver(
+        telegramService = new TelegramService(
                 responseToEditMessageTextConverter,
                 responseToSendMessageConverter,
                 telegramBotProperties,
@@ -48,7 +48,7 @@ class TelegramReceiverTest {
         var text = "123";
         var handler = mock(InputTextHandler.class);
 
-        telegramReceiver.onUpdateReceived(new Update());
+        telegramService.onUpdateReceived(new Update());
 
         verify(callbackResolver, times(1))
                 .getTextHandler(text);
@@ -62,7 +62,7 @@ class TelegramReceiverTest {
         var callbackData = new Callback("some_name", List.of("arg1", "arg2"));
         var handler = mock(ButtonClickHandler.class);
 
-        telegramReceiver.onUpdateReceived(new Update());
+        telegramService.onUpdateReceived(new Update());
 
         verify(argumentParser, times(1))
                 .parse(callbackZzz);

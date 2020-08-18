@@ -40,7 +40,7 @@ class DisplayBalanceHandlerTest {
                 .thenReturn(List.of("1", "2"));
 
         when(userRepository.findByChatId(CHAT))
-                .thenReturn(Uni.createFrom().item(new UserDb(CHAT, CARD, false)));
+                .thenReturn(Uni.createFrom().item(UserDb.builder().card(CARD).build()));
 
         var sodexoData = new SodexoData();
         sodexoData.setBalance(new Balance(10d, "RUR"));
@@ -57,7 +57,7 @@ class DisplayBalanceHandlerTest {
     @Test
     void shouldReturnErrorWithNoButtonsIfCardIsNotPresent() {
         when(userRepository.findByChatId(CHAT))
-                .thenReturn(Uni.createFrom().item(new UserDb(CHAT, null, false)));
+                .thenReturn(Uni.createFrom().item(new UserDb()));
 
         // When
         var actual = handler.handle(CHAT, "").await().indefinitely();
