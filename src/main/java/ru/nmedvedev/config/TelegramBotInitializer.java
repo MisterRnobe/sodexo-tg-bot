@@ -4,7 +4,7 @@ import io.quarkus.runtime.Startup;
 import lombok.SneakyThrows;
 import org.telegram.telegrambots.ApiContextInitializer;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
-import ru.nmedvedev.service.TelegramReceiver;
+import ru.nmedvedev.service.TelegramService;
 
 import javax.enterprise.context.ApplicationScoped;
 
@@ -18,8 +18,8 @@ public class TelegramBotInitializer {
     }
 
     @SneakyThrows
-    TelegramBotInitializer(TelegramReceiver telegramReceiver) {
+    TelegramBotInitializer(TelegramService telegramService) {
         var telegramBotsApi = new TelegramBotsApi();
-        telegramBotsApi.registerBot(telegramReceiver);
+        telegramBotsApi.registerBot(telegramService);
     }
 }

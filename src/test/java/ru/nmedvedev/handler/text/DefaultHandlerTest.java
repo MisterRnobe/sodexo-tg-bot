@@ -52,7 +52,7 @@ class DefaultHandlerTest {
 
         var actual = defaultHandler.handle(CHAT, CARD).await().indefinitely();
 
-        verify(userRepository, times(1)).persistOrUpdate(new UserDb(CHAT, CARD, false));
+        verify(userRepository, times(1)).persistOrUpdate(new UserDb(CHAT, CARD, false, null));
         verify(replyButtonsProvider, times(1)).provideMenuButtons();
         assertEquals(Response.withKeyboardButton("Я сохранил карту " + CARD, replyButtonsProvider.provideMenuButtons()), actual);
         verify(sodexoClient, times(1)).getByCard(CARD);
@@ -60,8 +60,7 @@ class DefaultHandlerTest {
 
     @Test
     void shouldReturnAcceptMessageWithMenuButtonsAndUpdateUserIfCardIsValid() {
-        var user = new UserDb(CHAT, null, false);
-        user.id = new ObjectId();
+        var user = UserDb.builder().chatId(CHAT).id(new ObjectId()).build();
 
         var sodexoResponse = new SodexoResponse();
         sodexoResponse.setStatus("OK");
@@ -78,8 +77,7 @@ class DefaultHandlerTest {
         var actual = defaultHandler.handle(CHAT, CARD).await().indefinitely();
 
         verify(sodexoClient, times(1)).getByCard(CARD);
-        var expectedToSave = new UserDb(CHAT, CARD, false);
-        expectedToSave.id = user.id;
+        var expectedToSave = UserDb.builder().id(user.id).chatId(CHAT).card(CARD).build();
         verify(userRepository, times(1)).persistOrUpdate(expectedToSave);
         verify(replyButtonsProvider, times(1)).provideMenuButtons();
         assertEquals(Response.withKeyboardButton("Я сохранил карту " + CARD, replyButtonsProvider.provideMenuButtons()), actual);
@@ -106,7 +104,7 @@ class DefaultHandlerTest {
     @Test
     void shouldReturnErrorMessageWithButtonsForBadMessageIfCardIsPresent() {
         when(userRepository.findByChatId(CHAT))
-                .thenReturn(Uni.createFrom().item(() -> new UserDb(CHAT, CARD, false)));
+                .thenReturn(Uni.createFrom().item(UserDb.builder().card(CARD).build()));
         when(replyButtonsProvider.provideMenuButtons())
                 .thenReturn(List.of("1", "2"));
 
@@ -121,7 +119,7 @@ class DefaultHandlerTest {
     @Test
     void shouldReturnInvalidCardTextWithNoButtonsForBadMessageIfCardIsNotPresent() {
         when(userRepository.findByChatId(CHAT))
-                .thenReturn(Uni.createFrom().item(() -> new UserDb(CHAT, null, false)));
+                .thenReturn(Uni.createFrom().item(new UserDb()));
 
         var actual = defaultHandler.handle(CHAT, "ZZZZZZZ").await().indefinitely();
 
@@ -161,7 +159,7 @@ class DefaultHandlerTest {
         var indefinitely = defaultHandler.handle(CHAT, card).await().indefinitely();
 
         verify(sodexoClient, times(1)).getByCard(trimmed);
-        verify(userRepository, times(1)).persistOrUpdate(new UserDb(CHAT, trimmed, false));
+        verify(userRepository, times(1)).persistOrUpdate(UserDb.builder().chatId(CHAT).card(trimmed).build());
     }
 
     @Test

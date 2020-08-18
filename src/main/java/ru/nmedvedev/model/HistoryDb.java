@@ -5,21 +5,16 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class History {
+public class HistoryDb {
 
-    private double amount;
+    private Double amount;
     private String currency;
-    private List<String> locationName;
-    private String mcc;
-    private String merchantId;
-    // TODO: 27/06/2020 Convert to OffsetDateTime
+    private String locationName;
+    // TODO: 16/08/2020 Convert to OffsetDateTime
     private String time;
-    private int trnType;
 
 }
