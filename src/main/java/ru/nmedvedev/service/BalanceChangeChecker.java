@@ -40,89 +40,36 @@ public class BalanceChangeChecker {
 
     public void check() {
         // TODO: 16/08/2020 Definitely it's not a good implementation
-        var users = userRepository.findSubscribedWithCard()
-                .collectItems().asList().await().indefinitely();
-
-        for (var user : users) {
-            var sodexoResponse = sodexoClient.getByCard(user.getCard()).await().indefinitely();
-            var history = sodexoResponse.getData().getHistory();
-            if (!history.isEmpty()) {
-                var latest = history.get(0);
-                if (!equalsHistories(user.getLatestOperation(), latest)) {
-                    log.info("Balance changed for user {}", user.getChatId());
-                    //changed
-                    var copy = new ArrayList<>(history);
-                    Collections.reverse(copy);
-                    var messageText = copy.stream()
-                            .takeWhile(not(e -> equalsHistories(user.getLatestOperation(), e)))
-                            .map(h -> String.format(
-                                    "%s %.2f руб от %s", h.getAmount() > 0 ? "Зачисление" : "Списание", Math.abs(h.getAmount()), h.getLocationName().get(0)
-                            ))
-                            .collect(Collectors.joining("\n","", String.format("\nТекущий баланс %.2f руб", sodexoResponse.getData().getBalance().getAvailableAmount())));
-
-                    user.setLatestOperation(new HistoryDb(latest.getAmount(), latest.getCurrency(), latest.getLocationName().get(0), latest.getTime()));
-                    userRepository.persistOrUpdate(user).await().indefinitely();
-                    telegramService.sendMessage(user.getChatId(), Response.withKeyboardButton(messageText, replyButtonsProvider.provideMenuButtons())).await().indefinitely();
-                }
-            }
-        }
-
-
-//        userRepository.findSubscribedWithCard()
-//                .flatMap(userDb -> sodexoClient.getByCard(userDb.getCard()).map(resp -> Map.entry(userDb, resp)).toMulti())
-//                .filter(balanceChanged())
-//                .invokeUni(saveToDb())
-//                .map(convertToResponses())
-//                .flatMap(tuple -> Multi.createFrom().items(tuple.getValue().stream()
-//                        .map(r -> Map.entry(tuple.getKey(), r))
-//                ))
-//                .invokeUni(sendMessage())
-//                .subscribe().with(r -> log.info("Sent message for " + r));
-
+        userRepository.findSubscribedWithCard()
+                .flatMap(userDb -> sodexoClient.getByCard(userDb.getCard())
+                        .map(sr -> Map.entry(userDb, sr))
+                        .toMulti())
+                .filter(not(tuple -> tuple.getValue().getData().getHistory().isEmpty()))
+                .filter(not(tuple -> equalsHistories(tuple.getKey().getLatestOperation(), tuple.getValue().getData().getHistory().get(0))))
+                .map(this::updateUser)
+                .invokeUni(tuple -> userRepository.persistOrUpdate(tuple.getKey()))
+                .subscribe().with(tuple -> telegramService.sendMessage(tuple.getKey().getChatId(), tuple.getValue()));
     }
 
-    private Function<? super Map.Entry<Long, Response>, ? extends Uni<?>> sendMessage() {
-        return tuple -> telegramService.sendMessage(tuple.getKey(), tuple.getValue());
-    }
+    private Map.Entry<UserDb, Response> updateUser(Map.Entry<UserDb, SodexoResponse> tuple) {
+        var user = tuple.getKey();
+        var sodexoResponse = tuple.getValue();
+        var history = sodexoResponse.getData().getHistory();
+        var latest = history.get(0);
+        log.info("Balance changed for user {}", user.getChatId());
+        //changed
+        var copy = new ArrayList<>(history);
+        Collections.reverse(copy);
+        var messageText = copy.stream()
+                .takeWhile(not(e -> equalsHistories(user.getLatestOperation(), e)))
+                .map(h -> String.format(
+                        "%s %.2f руб от %s", h.getAmount() > 0 ? "Зачисление" : "Списание", Math.abs(h.getAmount()), h.getLocationName().get(0)
+                ))
+                .collect(Collectors.joining("\n", "", String.format("\nТекущий баланс %.2f руб", sodexoResponse.getData().getBalance().getAvailableAmount())));
 
-    private Function<? super Map.Entry<UserDb, SodexoResponse>, ? extends Uni<?>> saveToDb() {
-        return tuple -> {
-            var userDb = tuple.getKey();
-            var latest = tuple.getValue().getData().getHistory().get(0);
-            var updated = UserDb.builder()
-                    .id(userDb.id)
-                    .card(userDb.getCard())
-                    .chatId(userDb.getChatId())
-                    .subscribed(userDb.getSubscribed())
-                    // TODO: 16/08/2020 Move to converter?
-                    .latestOperation(new HistoryDb(latest.getAmount(), latest.getCurrency(), latest.getLocationName().get(0), latest.getTime()))
-                    .build();
-            log.info("Saving " + updated);
-            return userRepository.persistOrUpdate(updated);
-        };
+        user.setLatestOperation(new HistoryDb(latest.getAmount(), latest.getCurrency(), latest.getLocationName().get(0), latest.getTime()));
+        return Map.entry(user, Response.withKeyboardButton(messageText, replyButtonsProvider.provideMenuButtons()));
     }
-
-    private Function<? super Map.Entry<UserDb, SodexoResponse>, Map.Entry<Long, List<Response>>> convertToResponses() {
-        return tuple -> {
-            return Map.entry(tuple.getKey().getChatId(), List.of());
-        };
-    }
-
-//    private Predicate<? super Map.Entry<UserDb, SodexoResponse>> balanceChanged() {
-//        return tuple -> {
-//            var latestOperation = tuple.getKey().getLatestOperation();
-//            var sodexoResponse = tuple.getValue();
-//            return Optional.of(sodexoResponse)
-//                    .map(SodexoResponse::getData)
-//                    .map(SodexoData::getHistory)
-//                    .filter(not(List::isEmpty))
-//                    .stream()
-//                    .flatMap(Collection::stream)
-//                    .takeWhile(not(equalsHistories(latestOperation)))
-//                    .findFirst()
-//                    .isPresent();
-//        };
-//    }
 
     private Boolean equalsHistories(HistoryDb historyDb, History history) {
         return !Objects.isNull(historyDb) && Objects.equals(historyDb.getAmount(), history.getAmount())

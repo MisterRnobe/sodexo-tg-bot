@@ -19,7 +19,7 @@ public class NotificationSubscriptionHandler implements InputTextHandler {
 
     @Override
     public String getPattern() {
-        return "Подпиши на уведомления о балансе";
+        return "Подпиши или отпиши на уведомления о балансе";
     }
 
     @Override

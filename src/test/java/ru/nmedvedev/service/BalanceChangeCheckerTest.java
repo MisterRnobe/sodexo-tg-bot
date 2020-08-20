@@ -93,9 +93,6 @@ public class BalanceChangeCheckerTest {
         when(userRepository.persistOrUpdate((UserDb) any()))
                 .thenReturn(Uni.createFrom().voidItem());
 
-        when(telegramService.sendMessage(anyLong(), any()))
-                .thenReturn(Uni.createFrom().voidItem());
-
         checker.check();
 
         verify(userRepository, times(1))
@@ -146,9 +143,6 @@ public class BalanceChangeCheckerTest {
         when(userRepository.persistOrUpdate((UserDb) any()))
                 .thenReturn(Uni.createFrom().voidItem());
 
-        when(telegramService.sendMessage(anyLong(), any()))
-                .thenReturn(Uni.createFrom().voidItem());
-
         checker.check();
 
         verify(replyButtonsProvider, times(1)).provideMenuButtons();
@@ -176,9 +170,6 @@ public class BalanceChangeCheckerTest {
                         UserDb.builder().chatId(CHAT).card(CARD).build()
                 ));
         when(userRepository.persistOrUpdate((UserDb) any()))
-                .thenReturn(Uni.createFrom().voidItem());
-
-        when(telegramService.sendMessage(anyLong(), any()))
                 .thenReturn(Uni.createFrom().voidItem());
 
         checker.check();

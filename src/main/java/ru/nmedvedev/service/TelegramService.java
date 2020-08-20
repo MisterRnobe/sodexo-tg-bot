@@ -77,7 +77,6 @@ public class TelegramService extends TelegramLongPollingBot {
         return this.execute(m);
     }
 
-    public Uni<Void> sendMessage(long chatId, Response response) {
-        return Uni.createFrom().voidItem();
+    public void sendMessage(long chatId, Response response) {
     }
 }

@@ -1,7 +1,7 @@
 #sodexoBot
 quarkus:
   mongodb:
-    connection-string: mongodb://sodexoBot:sodexoBot@localhost:27017/sodexoBot
+    connection-string: ${MONGO_URI}
     database: sodexoBot
 
 telegram:
@@ -12,3 +12,5 @@ ru:
   nmedvedev:
     rest:
       SodexoClient/mp-rest/uri: https://restaurantpass.gift-cards.ru/
+scheduling:
+  every: "2s"
