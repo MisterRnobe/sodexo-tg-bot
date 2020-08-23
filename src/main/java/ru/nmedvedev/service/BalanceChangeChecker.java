@@ -1,6 +1,5 @@
 package ru.nmedvedev.service;
 
-import io.smallrye.mutiny.Uni;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import ru.nmedvedev.model.History;
@@ -13,11 +12,13 @@ import ru.nmedvedev.view.ReplyButtonsProvider;
 import ru.nmedvedev.view.Response;
 
 import javax.enterprise.context.ApplicationScoped;
-import java.util.*;
-import java.util.function.Function;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static java.util.function.Predicate.not;
+import static java.util.stream.Collectors.toList;
 
 @Slf4j
 @ApplicationScoped
@@ -58,10 +59,12 @@ public class BalanceChangeChecker {
         var latest = history.get(0);
         log.info("Balance changed for user {}", user.getChatId());
         //changed
-        var copy = new ArrayList<>(history);
-        Collections.reverse(copy);
-        var messageText = copy.stream()
+        var newOperations = history.stream()
                 .takeWhile(not(e -> equalsHistories(user.getLatestOperation(), e)))
+                .collect(toList());
+        Collections.reverse(newOperations);
+        var messageText = newOperations
+                .stream()
                 .map(h -> String.format(
                         "%s %.2f руб от %s", h.getAmount() > 0 ? "Зачисление" : "Списание", Math.abs(h.getAmount()), h.getLocationName().get(0)
                 ))

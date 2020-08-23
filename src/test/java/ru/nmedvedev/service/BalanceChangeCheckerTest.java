@@ -151,7 +151,7 @@ public class BalanceChangeCheckerTest {
     }
 
     @Test
-    void shouldSendOneMessageWithManyOperationsAndSaveLatest() {
+    void shouldSendOneMessageWithManyOperationsAndSaveLatestIfLatestOperationIsNotPresent() {
         var sodexoResponse = new SodexoResponse();
         sodexoResponse.setStatus("OK");
         var data = new SodexoData();
@@ -168,6 +168,42 @@ public class BalanceChangeCheckerTest {
         when(userRepository.findSubscribedWithCard())
                 .thenReturn(Multi.createFrom().items(
                         UserDb.builder().chatId(CHAT).card(CARD).build()
+                ));
+        when(userRepository.persistOrUpdate((UserDb) any()))
+                .thenReturn(Uni.createFrom().voidItem());
+
+        checker.check();
+
+        verify(replyButtonsProvider, times(1)).provideMenuButtons();
+        verify(telegramService, times(1))
+                .sendMessage(CHAT, Response.withKeyboardButton("Списание 200.00 руб от name2\nЗачисление 100.00 руб от name1\nТекущий баланс 123.45 руб", replyButtonsProvider.provideMenuButtons()));
+        verify(userRepository, times(1)).persistOrUpdate(UserDb
+                .builder()
+                .chatId(CHAT)
+                .card(CARD)
+                .latestOperation(new HistoryDb(100d, "RUR", "name1", "zzz"))
+                .build());
+    }
+
+    @Test
+    void shouldSendOneMessageWithManyOperationsAndSaveLatestIfLatestOperationIsPresent() {
+        var sodexoResponse = new SodexoResponse();
+        sodexoResponse.setStatus("OK");
+        var data = new SodexoData();
+        data.setHistory(List.of(
+                History.builder().amount(100d).currency("RUR").locationName(List.of("name1")).time("zzz").build(),
+                History.builder().amount(-200d).currency("RUR").locationName(List.of("name2")).build(),
+                History.builder().amount(-300d).currency("RUR").locationName(List.of("LOC")).time("TIME").build()
+        ));
+        data.setBalance(new Balance(123.45, "RUR"));
+        sodexoResponse.setData(data);
+        when(sodexoClient.getByCard(CARD)).thenReturn(Uni.createFrom().item(sodexoResponse));
+
+        when(replyButtonsProvider.provideMenuButtons()).thenReturn(List.of("1", "2"));
+
+        when(userRepository.findSubscribedWithCard())
+                .thenReturn(Multi.createFrom().items(
+                        UserDb.builder().chatId(CHAT).card(CARD).latestOperation(new HistoryDb(-300d, "RUR", "LOC", "TIME")).build()
                 ));
         when(userRepository.persistOrUpdate((UserDb) any()))
                 .thenReturn(Uni.createFrom().voidItem());
