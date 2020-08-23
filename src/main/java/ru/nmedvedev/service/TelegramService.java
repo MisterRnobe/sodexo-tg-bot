@@ -78,5 +78,6 @@ public class TelegramService extends TelegramLongPollingBot {
     }
 
     public void sendMessage(long chatId, Response response) {
+        executeSafe(responseToSendMessageConverter.convert(response, chatId));
     }
 }

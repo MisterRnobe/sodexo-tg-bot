@@ -3,10 +3,7 @@ package ru.nmedvedev.controller;
 
 import org.jboss.resteasy.annotations.jaxrs.PathParam;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.util.Map;
 
@@ -15,12 +12,18 @@ import java.util.Map;
 @Consumes(MediaType.APPLICATION_JSON)
 public class CheckController {
 
+    private Map stub = Map.of();
 
     @GET
     @Path("/cards/{card}")
-    public Map stub(@PathParam(value = "card") String card) {
-        return Map.of();
+    public Map get(@PathParam(value = "card") String card) {
+        return stub;
     }
 
+    @POST
+    @Path("/cards/{card}")
+    public void post(Map body) {
+        this.stub = body;
+    }
 
 }
