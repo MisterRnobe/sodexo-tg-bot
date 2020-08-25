@@ -12,6 +12,7 @@ import ru.nmedvedev.view.Response;
 
 import javax.enterprise.context.ApplicationScoped;
 import java.time.Duration;
+import java.util.Optional;
 
 @ApplicationScoped
 public class DefaultHandler implements InputTextHandler {
@@ -50,8 +51,13 @@ public class DefaultHandler implements InputTextHandler {
                 return sodexoClient.getByCard(noSpacesCard)
                         .flatMap(sodexoResponse -> {
                             if (sodexoResponse.getStatus().equals("OK")) {
-                                var userDb = new UserDb(chatId, noSpacesCard, byChatId == null ? false : byChatId.getSubscribed(), null);
-                                userDb.id = byChatId == null ? null : byChatId.id;
+                                var userDb = Optional.ofNullable(byChatId)
+                                        .orElseGet(() ->
+                                                UserDb.builder()
+                                                        .chatId(chatId)
+                                                        .build()
+                                        );
+                                userDb.setCard(noSpacesCard);
                                 return userRepository.persistOrUpdate(userDb)
                                         .map(v -> Response.withReplyButtons("Я сохранил карту " + noSpacesCard, replyButtonsProvider.provideMenuButtons()));
                             } else {

@@ -52,7 +52,7 @@ class DefaultHandlerTest {
 
         var actual = defaultHandler.handle(CHAT, CARD).await().indefinitely();
 
-        verify(userRepository, times(1)).persistOrUpdate(new UserDb(CHAT, CARD, false, null));
+        verify(userRepository, times(1)).persistOrUpdate(UserDb.builder().chatId(CHAT).card(CARD).build());
         verify(replyButtonsProvider, times(1)).provideMenuButtons();
         assertEquals(Response.withReplyButtons("Я сохранил карту " + CARD, replyButtonsProvider.provideMenuButtons()), actual);
         verify(sodexoClient, times(1)).getByCard(CARD);
@@ -154,10 +154,11 @@ class DefaultHandlerTest {
         when(replyButtonsProvider.provideMenuButtons())
                 .thenReturn(List.of("1", "2"));
         when(userRepository.persistOrUpdate((UserDb) any()))
-                .thenReturn(Uni.createFrom().item(() -> null));
+                .thenReturn(Uni.createFrom().voidItem());
 
-        var indefinitely = defaultHandler.handle(CHAT, card).await().indefinitely();
+        var actual = defaultHandler.handle(CHAT, card).await().indefinitely();
 
+        assertEquals(Response.withReplyButtons("Я сохранил карту 123", replyButtonsProvider.provideMenuButtons()), actual);
         verify(sodexoClient, times(1)).getByCard(trimmed);
         verify(userRepository, times(1)).persistOrUpdate(UserDb.builder().chatId(CHAT).card(trimmed).build());
     }
