@@ -23,23 +23,18 @@ class TelegramServiceTest {
 
     private TelegramService telegramService;
 
-    private ResponseToEditMessageTextConverter responseToEditMessageTextConverter;
     private ResponseToSendMessageConverter responseToSendMessageConverter;
     @Mock
     private TelegramBotProperties telegramBotProperties;
     @Mock
     private CallbackResolver callbackResolver;
-    @Mock
-    private HandlerArgumentParser argumentParser;
 
     @BeforeEach
     void setUp() {
         telegramService = new TelegramService(
-                responseToEditMessageTextConverter,
                 responseToSendMessageConverter,
                 telegramBotProperties,
-                callbackResolver,
-                argumentParser
+                callbackResolver
         );
     }
 
@@ -54,22 +49,6 @@ class TelegramServiceTest {
                 .getTextHandler(text);
         verify(handler, times(1))
                 .handle(CHAT, text);
-    }
-
-    @Test
-    void shouldGetButtonHandlerAndInvokeWithParsedArguments() {
-        var callbackZzz = "callback_zzzz";
-        var callbackData = new Callback("some_name", List.of("arg1", "arg2"));
-        var handler = mock(ButtonClickHandler.class);
-
-        telegramService.onUpdateReceived(new Update());
-
-        verify(argumentParser, times(1))
-                .parse(callbackZzz);
-        verify(callbackResolver, times(1))
-                .getButtonHandler(callbackData.getName());
-        verify(handler, times(1))
-                .handleWithArgs(CHAT, callbackData.getArguments());
     }
 
     @Test
