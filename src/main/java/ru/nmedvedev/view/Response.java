@@ -12,7 +12,6 @@ import java.util.List;
 public class Response {
 
     private String text;
-    private List<List<Button>> buttons;
     private List<String> replyButtons;
 
     @Deprecated
@@ -21,10 +20,10 @@ public class Response {
     }
 
     public static Response fromText(String text) {
-        return new Response(text, List.of(), List.of());
+        return new Response(text, List.of());
     }
 
-    public static Response withKeyboardButton(String text, List<String> replyButtons) {
-        return new Response(text, List.of(), replyButtons);
+    public static Response withReplyButtons(String text, List<String> replyButtons) {
+        return new Response(text, replyButtons);
     }
 }

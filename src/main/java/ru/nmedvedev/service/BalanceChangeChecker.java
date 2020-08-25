@@ -71,7 +71,7 @@ public class BalanceChangeChecker {
                 .collect(Collectors.joining("\n", "", String.format("\nТекущий баланс %.2f руб", sodexoResponse.getData().getBalance().getAvailableAmount())));
 
         user.setLatestOperation(new HistoryDb(latest.getAmount(), latest.getCurrency(), latest.getLocationName().get(0), latest.getTime()));
-        return Map.entry(user, Response.withKeyboardButton(messageText, replyButtonsProvider.provideMenuButtons()));
+        return Map.entry(user, Response.withReplyButtons(messageText, replyButtonsProvider.provideMenuButtons()));
     }
 
     private Boolean equalsHistories(HistoryDb historyDb, History history) {

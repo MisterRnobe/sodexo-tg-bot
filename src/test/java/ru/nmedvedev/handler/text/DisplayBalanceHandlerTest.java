@@ -50,7 +50,7 @@ class DisplayBalanceHandlerTest {
         var actual = handler.handle(CHAT, "").await().indefinitely();
         // Then
         verify(replyButtonsProvider, times(1)).provideMenuButtons();
-        var expected = Response.withKeyboardButton("Ваш баланс 10.00 руб", replyButtonsProvider.provideMenuButtons());
+        var expected = Response.withReplyButtons("Ваш баланс 10.00 руб", replyButtonsProvider.provideMenuButtons());
         assertEquals(expected, actual);
     }
 

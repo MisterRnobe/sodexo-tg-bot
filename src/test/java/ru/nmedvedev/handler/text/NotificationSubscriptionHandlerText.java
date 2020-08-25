@@ -49,7 +49,7 @@ public class NotificationSubscriptionHandlerText {
 
         verify(userRepository, times(1)).persistOrUpdate(UserDb.withId(id, CHAT, CARD, !subscribed));
         verify(replyButtonsProvider, times(1)).provideMenuButtons();
-        assertEquals(Response.withKeyboardButton(message, replyButtonsProvider.provideMenuButtons()), actual);
+        assertEquals(Response.withReplyButtons(message, replyButtonsProvider.provideMenuButtons()), actual);
     }
 
     @Test

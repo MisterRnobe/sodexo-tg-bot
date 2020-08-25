@@ -19,18 +19,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ResponseToSendMessageConverter {
 
-    private final ButtonToInlineKeyboardButtonConverter converter;
-
     public SendMessage convert(Response response, Long chatId) {
-//        var buttons = Optional.of(response)
-//                .map(Response::getButtons)
-//                .stream()
-//                .flatMap(Collection::stream)
-//                .map(list ->
-//                        list.stream()
-//                                .map(converter::convert)
-//                                .collect(Collectors.toUnmodifiableList()))
-//                .collect(Collectors.toList());
 
         var keyboardRows = Optional.of(response)
                 .map(Response::getReplyButtons)
@@ -51,9 +40,6 @@ public class ResponseToSendMessageConverter {
             sendMessage.setReplyMarkup(new ReplyKeyboardRemove());
         }
 
-//        if (!buttons.isEmpty()) {
-//            sendMessage.setReplyMarkup(new InlineKeyboardMarkup(buttons));
-//        }
         return sendMessage;
     }
 }

@@ -40,7 +40,7 @@ class CardDisplayHandlerTest {
 
         var actual = handler.handle(CHAT, "").await().indefinitely();
 
-        var expected = Response.withKeyboardButton("Ваша карта " + CARD, buttons);
+        var expected = Response.withReplyButtons("Ваша карта " + CARD, buttons);
         assertEquals(expected, actual);
     }
 
