@@ -1,5 +1,6 @@
 package ru.nmedvedev.service;
 
+import io.smallrye.mutiny.Uni;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -7,7 +8,6 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.nmedvedev.config.properties.TelegramBotProperties;
-import ru.nmedvedev.service.converter.ResponseToEditMessageTextConverter;
 import ru.nmedvedev.service.converter.ResponseToSendMessageConverter;
 import ru.nmedvedev.view.Response;
 
@@ -34,8 +34,7 @@ public class TelegramService extends TelegramLongPollingBot {
                 callbackResolver.getTextHandler(text)
                         .orElseGet(callbackResolver::defaultTextHandler)
                         .handle(chatId, text)
-                        .map(response -> responseToSendMessageConverter.convert(response, chatId))
-                        .map(this::executeSafe)
+                        .invoke(response -> sendMessage(chatId, response))
                         .await()
                         .atMost(Duration.ofSeconds(10L));
             } else {
