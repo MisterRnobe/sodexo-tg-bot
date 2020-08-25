@@ -10,7 +10,7 @@ import java.util.Map;
 @Path("/api/1")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class CheckController {
+public class StubController {
 
     private Map stub = Map.of();
 

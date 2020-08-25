@@ -1,6 +1,5 @@
 package ru.nmedvedev.service;
 
-import io.smallrye.mutiny.Uni;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -20,11 +19,9 @@ import java.time.Duration;
 @RequiredArgsConstructor
 public class TelegramService extends TelegramLongPollingBot {
 
-    private final ResponseToEditMessageTextConverter responseToEditMessageTextConverter;
     private final ResponseToSendMessageConverter responseToSendMessageConverter;
     private final TelegramBotProperties telegramBotProperties;
     private final CallbackResolver callbackResolver;
-    private final HandlerArgumentParser argumentParser;
 
     @Override
     @SneakyThrows
@@ -44,19 +41,6 @@ public class TelegramService extends TelegramLongPollingBot {
             } else {
                 // do nothing
             }
-        } else if (update.hasCallbackQuery()) {
-            var chatId = update.getCallbackQuery().getMessage().getChatId();
-            var messageId = update.getCallbackQuery().getMessage().getMessageId();
-            var callbackData = argumentParser.parse(update.getCallbackQuery().getData());
-            callbackResolver.getButtonHandler(callbackData.getName())
-                    .orElseThrow(IllegalStateException::new)
-                    .handleWithArgs(chatId, callbackData.getArguments())
-                    // TODO: 11/08/2020 move to inner method??
-                    .map(response -> responseToEditMessageTextConverter.convert(response, chatId).setMessageId(messageId))
-                    .map(this::executeSafe)
-                    .await()
-                    .atMost(Duration.ofSeconds(10L));
-
         } else {
             log.warn("Unexpected event...");
         }
