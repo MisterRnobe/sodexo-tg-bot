@@ -35,6 +35,6 @@ public class NotificationSubscriptionHandler implements InputTextHandler {
                 ? "Теперь я вам буду сообщать о всех зачислениям и списаниях"
                 : "Теперь я вам не буду сообщать о всех зачислениям и списаниях";
         return userRepository.persistOrUpdate(userDb)
-                .map(v -> Response.withKeyboardButton(message, replyButtonsProvider.provideMenuButtons()));
+                .map(v -> Response.withReplyButtons(message, replyButtonsProvider.provideMenuButtons()));
     }
 }

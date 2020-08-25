@@ -40,7 +40,7 @@ public class DefaultHandler implements InputTextHandler {
         var byChatId = userRepository.findByChatId(chatId).await().atMost(Duration.ofSeconds(10L));
 
         if (byChatId != null && byChatId.getCard() != null) {
-            return Uni.createFrom().item(Response.withKeyboardButton("Неизвестный запрос :(", replyButtonsProvider.provideMenuButtons()));
+            return Uni.createFrom().item(Response.withReplyButtons("Неизвестный запрос :(", replyButtonsProvider.provideMenuButtons()));
         } else {
             if (text.matches("[0-9 ]+")) {
                 var noSpacesCard = text.replaceAll(" ", "")
@@ -53,7 +53,7 @@ public class DefaultHandler implements InputTextHandler {
                                 var userDb = new UserDb(chatId, noSpacesCard, byChatId == null ? false : byChatId.getSubscribed(), null);
                                 userDb.id = byChatId == null ? null : byChatId.id;
                                 return userRepository.persistOrUpdate(userDb)
-                                        .map(v -> Response.withKeyboardButton("Я сохранил карту " + noSpacesCard, replyButtonsProvider.provideMenuButtons()));
+                                        .map(v -> Response.withReplyButtons("Я сохранил карту " + noSpacesCard, replyButtonsProvider.provideMenuButtons()));
                             } else {
                                 // TODO: 13/08/2020 use localization
                                 return Uni

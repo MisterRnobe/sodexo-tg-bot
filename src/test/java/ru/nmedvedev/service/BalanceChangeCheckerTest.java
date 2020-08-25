@@ -147,7 +147,7 @@ public class BalanceChangeCheckerTest {
 
         verify(replyButtonsProvider, times(1)).provideMenuButtons();
         verify(telegramService, times(1))
-                .sendMessage(CHAT, Response.withKeyboardButton(operationMessage + "\nТекущий баланс 123.45 руб", replyButtonsProvider.provideMenuButtons()));
+                .sendMessage(CHAT, Response.withReplyButtons(operationMessage + "\nТекущий баланс 123.45 руб", replyButtonsProvider.provideMenuButtons()));
     }
 
     @Test
@@ -176,7 +176,7 @@ public class BalanceChangeCheckerTest {
 
         verify(replyButtonsProvider, times(1)).provideMenuButtons();
         verify(telegramService, times(1))
-                .sendMessage(CHAT, Response.withKeyboardButton("Списание 200.00 руб от name2\nЗачисление 100.00 руб от name1\nТекущий баланс 123.45 руб", replyButtonsProvider.provideMenuButtons()));
+                .sendMessage(CHAT, Response.withReplyButtons("Списание 200.00 руб от name2\nЗачисление 100.00 руб от name1\nТекущий баланс 123.45 руб", replyButtonsProvider.provideMenuButtons()));
         verify(userRepository, times(1)).persistOrUpdate(UserDb
                 .builder()
                 .chatId(CHAT)
@@ -212,7 +212,7 @@ public class BalanceChangeCheckerTest {
 
         verify(replyButtonsProvider, times(1)).provideMenuButtons();
         verify(telegramService, times(1))
-                .sendMessage(CHAT, Response.withKeyboardButton("Списание 200.00 руб от name2\nЗачисление 100.00 руб от name1\nТекущий баланс 123.45 руб", replyButtonsProvider.provideMenuButtons()));
+                .sendMessage(CHAT, Response.withReplyButtons("Списание 200.00 руб от name2\nЗачисление 100.00 руб от name1\nТекущий баланс 123.45 руб", replyButtonsProvider.provideMenuButtons()));
         verify(userRepository, times(1)).persistOrUpdate(UserDb
                 .builder()
                 .chatId(CHAT)

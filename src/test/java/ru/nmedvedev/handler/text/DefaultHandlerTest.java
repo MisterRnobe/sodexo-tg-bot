@@ -54,7 +54,7 @@ class DefaultHandlerTest {
 
         verify(userRepository, times(1)).persistOrUpdate(new UserDb(CHAT, CARD, false, null));
         verify(replyButtonsProvider, times(1)).provideMenuButtons();
-        assertEquals(Response.withKeyboardButton("Я сохранил карту " + CARD, replyButtonsProvider.provideMenuButtons()), actual);
+        assertEquals(Response.withReplyButtons("Я сохранил карту " + CARD, replyButtonsProvider.provideMenuButtons()), actual);
         verify(sodexoClient, times(1)).getByCard(CARD);
     }
 
@@ -80,7 +80,7 @@ class DefaultHandlerTest {
         var expectedToSave = UserDb.builder().id(user.id).chatId(CHAT).card(CARD).build();
         verify(userRepository, times(1)).persistOrUpdate(expectedToSave);
         verify(replyButtonsProvider, times(1)).provideMenuButtons();
-        assertEquals(Response.withKeyboardButton("Я сохранил карту " + CARD, replyButtonsProvider.provideMenuButtons()), actual);
+        assertEquals(Response.withReplyButtons("Я сохранил карту " + CARD, replyButtonsProvider.provideMenuButtons()), actual);
     }
 
     @Test
@@ -113,7 +113,7 @@ class DefaultHandlerTest {
         verify(replyButtonsProvider, times(1)).provideMenuButtons();
         verify(userRepository, never()).persistOrUpdate((UserDb) any());
         verifyNoInteractions(sodexoClient);
-        assertEquals(Response.withKeyboardButton("Неизвестный запрос :(", replyButtonsProvider.provideMenuButtons()), actual);
+        assertEquals(Response.withReplyButtons("Неизвестный запрос :(", replyButtonsProvider.provideMenuButtons()), actual);
     }
 
     @Test

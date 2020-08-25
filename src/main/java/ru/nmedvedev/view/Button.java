@@ -8,6 +8,7 @@ import ru.nmedvedev.service.HandlerName;
 import java.util.List;
 
 @Data
+@Deprecated
 @NoArgsConstructor
 @AllArgsConstructor
 public class Button {

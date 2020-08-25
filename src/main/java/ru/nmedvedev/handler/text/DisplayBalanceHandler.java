@@ -41,7 +41,7 @@ public class DisplayBalanceHandler implements InputTextHandler {
                         "Ваш баланс %.2f %s",
                         response.getData().getBalance().getAvailableAmount(),
                         "руб"))
-                .onItem().ifNotNull().apply(str -> Response.withKeyboardButton(str, replyButtonsProvider.provideMenuButtons()))
+                .onItem().ifNotNull().apply(str -> Response.withReplyButtons(str, replyButtonsProvider.provideMenuButtons()))
                 .onItem().ifNull().continueWith(() -> Response.fromText("Вы не ввели карту"));
     }
 }
