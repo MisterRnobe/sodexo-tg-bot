@@ -1,15 +1,14 @@
 package ru.nmedvedev.service.converter;
 
+import com.pengrad.telegrambot.model.request.ReplyKeyboardMarkup;
+import com.pengrad.telegrambot.model.request.ReplyKeyboardRemove;
+import com.pengrad.telegrambot.request.SendMessage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import ru.nmedvedev.view.Response;
 
 import java.util.List;
@@ -21,24 +20,25 @@ import static ru.nmedvedev.Helper.CHAT;
 @ExtendWith(MockitoExtension.class)
 class ResponseToSendMessageConverterTest {
 
+    private static final String TEXT = "text";
     @InjectMocks
     private ResponseToSendMessageConverter converter;
 
     @Test
     void shouldConvertWithReplyButtons() {
-        var response = Response.withReplyButtons("text", List.of("b1", "b2", "b3"));
+        var response = Response.withReplyButtons(TEXT, List.of("b1", "b2", "b3"));
 
         var actual = converter.convert(response, CHAT);
 
-        var expected = new SendMessage()
-                .setText("text")
-                .setChatId(CHAT)
-                .setReplyMarkup(new ReplyKeyboardMarkup(List.of(
-                        keyboardRow("b1"),
-                        keyboardRow("b2"),
-                        keyboardRow("b3")
-                )));
-        assertEquals(expected, actual);
+        var expected = new SendMessage(CHAT, TEXT)
+                .replyMarkup(new ReplyKeyboardMarkup(
+                        new String[]{"b1"},
+                        new String[]{"b2"},
+                        new String[]{"b3"}
+                ));
+        assertEquals(CHAT, actual.getParameters().get("chat_id"));
+        assertEquals(TEXT, actual.getParameters().get("text"));
+        assertEquals(expected.getParameters().get("reply_markup").toString(), actual.getParameters().get("reply_markup").toString());
     }
 
     @MethodSource
@@ -46,25 +46,16 @@ class ResponseToSendMessageConverterTest {
     void shouldConvertWithRemoveReplyKeyboardIfButtonsAreAbsent(Response response) {
         var actual = converter.convert(response, CHAT);
 
-        var expected = new SendMessage()
-                .setText("text")
-                .setReplyMarkup(new ReplyKeyboardRemove())
-                .setChatId(CHAT);
-        assertEquals(expected, actual);
+        assertEquals(CHAT, actual.getParameters().get("chat_id"));
+        assertEquals(TEXT, actual.getParameters().get("text"));
+        assertEquals(ReplyKeyboardRemove.class, actual.getParameters().get("reply_markup").getClass());
     }
 
     public static Stream<Response> shouldConvertWithRemoveReplyKeyboardIfButtonsAreAbsent() {
         return Stream.of(
-                Response.withReplyButtons("text", null),
-                Response.withReplyButtons("text", List.of())
+                Response.withReplyButtons(TEXT, null),
+                Response.withReplyButtons(TEXT, List.of())
         );
     }
 
-    private KeyboardRow keyboardRow(String... keyNames) {
-        var keyboardButtons = new KeyboardRow();
-        for (var key: keyNames) {
-            keyboardButtons.add(key);
-        }
-        return keyboardButtons;
-    }
 }
