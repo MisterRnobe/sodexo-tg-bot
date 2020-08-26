@@ -4,13 +4,14 @@ import io.quarkus.runtime.Startup;
 import lombok.SneakyThrows;
 import org.telegram.telegrambots.ApiContextInitializer;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
+import ru.nmedvedev.service.IndexVerifier;
 import ru.nmedvedev.service.TelegramService;
 
 import javax.enterprise.context.ApplicationScoped;
 
 @Startup
 @ApplicationScoped
-public class TelegramBotInitializer {
+public class ApplicationInitializer {
 
     static {
         // I myself do not like this solution https://github.com/rubenlagus/TelegramBots/issues/161
@@ -18,8 +19,10 @@ public class TelegramBotInitializer {
     }
 
     @SneakyThrows
-    TelegramBotInitializer(TelegramService telegramService) {
+    ApplicationInitializer(TelegramService telegramService,
+                           IndexVerifier indexVerifier) {
         var telegramBotsApi = new TelegramBotsApi();
         telegramBotsApi.registerBot(telegramService);
+        indexVerifier.createIndexesIfNotExist();
     }
 }
