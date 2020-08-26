@@ -1,0 +1,41 @@
+name: Build docker image and deploy to a server
+
+on:
+  release:
+    types: [ published ]
+
+jobs:
+  build_and_push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v1.4.2
+        with:
+          java-version: 11
+      - name: Build project
+        run: >
+          mvn -B package
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v1.1.0
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          repository: misterrnobe/sodexo-tg-bot
+          dockerfile: ./src/main/docker/Dockerfile.jvm
+          tags: latest
+          tag_with_ref: true
+      - name: Deploy to server
+        run: >
+          mkdir ~/.ssh &&
+          echo "$SSH_KEY" > ~/.ssh/id_rsa &&
+          echo "$ENV" > .env &&
+          export DOCKER_HOST=$DOCKER_HOST &&
+          export TAG=${GITHUB_REF##*/} &&
+          docker-compose up -d
+        env:
+          SSH_KEY: ${{secrets.SSH_KEY}}
+          ENV: ${{secrets.ENV}}
+          DOCKER_HOST: ${{secrets.DOCKER_HOST}}
+

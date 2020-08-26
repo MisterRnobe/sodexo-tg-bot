@@ -1,0 +1,22 @@
+version: '3'
+services:
+  sodexo-tg-bot:
+    image: misterrnobe/sodexo-tg-bot:${TAG}
+    container_name: sodexo-tg-bot
+    environment:
+      MONGO_URI: ${MONGO_URI}
+      BOT_TOKEN: ${BOT_TOKEN}
+    restart: unless-stopped
+    depends_on:
+      - mongodb
+  mongodb:
+    image: mongo:4
+    container_name: mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: sodexoBot
+    restart: unless-stopped
+    volumes:
+      - /data/mongodb:/data/db
+
