@@ -17,10 +17,7 @@ public class SchedulingService {
 
     @Scheduled(every = "{scheduling.every}")
     void checkBalanceChange() {
-        log.info("Starting balance check job");
-        var startTime = OffsetDateTime.now();
         checker.check();
-        log.info("Checked balances, duration: {} ms", Duration.between(startTime, OffsetDateTime.now()).toMillis());
     }
 
 }

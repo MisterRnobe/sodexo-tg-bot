@@ -1,22 +1,24 @@
 package ru.nmedvedev.service;
 
+import com.pengrad.telegrambot.TelegramBot;
+import com.pengrad.telegrambot.model.Chat;
+import com.pengrad.telegrambot.model.Message;
+import com.pengrad.telegrambot.model.Update;
+import com.pengrad.telegrambot.request.SendMessage;
+import com.pengrad.telegrambot.response.SendResponse;
 import io.smallrye.mutiny.Uni;
-import org.junit.jupiter.api.BeforeEach;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.telegram.telegrambots.meta.api.objects.Chat;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.nmedvedev.handler.InputTextHandler;
 import ru.nmedvedev.service.converter.ResponseToSendMessageConverter;
 import ru.nmedvedev.view.Response;
 
-import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import static org.mockito.Mockito.*;
 import static ru.nmedvedev.Helper.CHAT;
@@ -24,34 +26,29 @@ import static ru.nmedvedev.Helper.CHAT;
 @ExtendWith(MockitoExtension.class)
 class TelegramServiceTest {
 
-    @Mock
+    @InjectMocks
     private TelegramService telegramService;
     @Mock
+    private ResponseToSendMessageConverter responseToSendMessageConverter;
+    @Mock
     private CallbackResolver callbackResolver;
-
-    @BeforeEach
-    void setUp() {
-        try {
-            var callbackResolverField = TelegramService.class.getDeclaredField("callbackResolver");
-            callbackResolverField.setAccessible(true);
-            callbackResolverField.set(telegramService, callbackResolver);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-        doCallRealMethod().when(telegramService).onUpdateReceived(any());
-    }
+    @Mock
+    private TelegramBot telegramBot;
 
     @Test
-    void shouldGetTextHandlerAndInvoke() {
+    void shouldGetTextHandlerThenInvokeItAndSendResponseIfUpdateHasMessageAndText() {
         var text = "123";
         var handler = mock(InputTextHandler.class);
         var response = Response.fromText("123");
 
         when(handler.handle(anyLong(), anyString()))
                 .thenReturn(Uni.createFrom().item(response));
-
         when(callbackResolver.getTextHandler(text))
                 .thenReturn(Optional.of(handler));
+        when(responseToSendMessageConverter.convert(response, CHAT))
+                .thenReturn(new SendMessage(CHAT, text));
+        when(telegramBot.execute(any()))
+                .thenReturn(sendResponse());
 
         telegramService.onUpdateReceived(getUpdateWith(Map.of(
                 "message", getMessage(CHAT, text)
@@ -61,8 +58,10 @@ class TelegramServiceTest {
                 .getTextHandler(text);
         verify(handler, times(1))
                 .handle(CHAT, text);
-        verify(telegramService, times(1))
-                .sendMessage(CHAT, response);
+        verify(responseToSendMessageConverter, times(1))
+                .convert(response, CHAT);
+        verify(telegramBot, times(1))
+                .execute(responseToSendMessageConverter.convert(response, CHAT));
     }
 
     @Test
@@ -73,11 +72,14 @@ class TelegramServiceTest {
 
         when(handler.handle(anyLong(), anyString()))
                 .thenReturn(Uni.createFrom().item(response));
-
         when(callbackResolver.getTextHandler(text))
                 .thenReturn(Optional.empty());
         when(callbackResolver.defaultTextHandler())
                 .thenReturn(handler);
+        when(responseToSendMessageConverter.convert(response, CHAT))
+                .thenReturn(new SendMessage(CHAT, text));
+        when(telegramBot.execute(any()))
+                .thenReturn(sendResponse());
 
         telegramService.onUpdateReceived(getUpdateWith(Map.of(
                 "message", getMessage(CHAT, text)
@@ -89,8 +91,17 @@ class TelegramServiceTest {
                 .defaultTextHandler();
         verify(handler, times(1))
                 .handle(CHAT, text);
-        verify(telegramService, times(1))
-                .sendMessage(CHAT, response);
+        verify(responseToSendMessageConverter, times(1))
+                .convert(response, CHAT);
+        verify(telegramBot, times(1))
+                .execute(responseToSendMessageConverter.convert(response, CHAT));
+    }
+
+    @SneakyThrows
+    private SendResponse sendResponse() {
+        var constructor = SendResponse.class.getDeclaredConstructor();
+        constructor.setAccessible(true);
+        return constructor.newInstance();
     }
 
     private Update getUpdateWith(Map<String, Object> fields) {

@@ -6,7 +6,6 @@ quarkus:
 
 telegram:
   bot:
-    username: Sodexo bot
     token: ${BOT_TOKEN}
 ru:
   nmedvedev:
