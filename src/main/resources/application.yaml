@@ -12,4 +12,4 @@ ru:
     rest:
       SodexoClient/mp-rest/uri: https://restaurantpass.gift-cards.ru/
 scheduling:
-  every: "2s"
+  everySeconds: 2
