@@ -1,30 +1,106 @@
-# sodexo-tg-bot project
+<br />
+<p align="center">
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
+  <h3 align="center">sodexo telegram bot</h3>
 
-If you want to learn more about Quarkus, please visit its website: https://quarkus.io/ .
+  <p align="center">
+    Balance checker telegram bot for your Sodexo Restaurant Pass card
+    <br />
+    <br />
+    <a href="http://t.me/sodexo_card_bot">Try the bot</a>
+    ·
+    <a href="https://github.com/MisterRnobe/sodexo-tg-bot/issues/new?assignees=&labels=bug&template=bug_report.md&title=">Report Bug</a>
+    ·
+    <a href="https://github.com/MisterRnobe/sodexo-tg-bot/issues/new?assignees=&labels=enhancement&template=feature_request.md&title=">Request Feature</a>
+  </p>
+</p>
 
-## Running the application in dev mode
 
-You can run your application in dev mode that enables live coding using:
+
+## Table of Contents
+
+* [About the Project](#about-the-project)
+  * [Built With](#built-with)
+* [Getting Started](#getting-started)
+  * [Prerequisites](#prerequisites)
+  * [Installation](#installation)
+* [Roadmap](#roadmap)
+* [Contributing](#contributing)
+* [License](#license)
+* [Contact](#contact)
+
+
+
+## About The Project
+
+There are an amazing website and a mobile application to monitor sodexo card balance.
+However, it does not support some features that would help me to keep track any balance changes, that's why I created the bot  
+
+
+### Built With
+
+* [quarkus](https://quarkus.io/)
+* [mutiny](https://smallrye.io/smallrye-mutiny/)
+
+
+## Getting Started
+
+To get a local copy up and running follow these simple steps.
+
+### Prerequisites
+
+* Install and run mongo db
+```sh
+apt-get install mongo
 ```
-./mvnw quarkus:dev
+or launch [docker container]() using
+```shell script
+docker run --name sodexo-tg-bot-mongo -d \
+  -e MONGO_INITDB_ROOT_USERNAME=<INSERT USERNAME> \
+  -e MONGO_INITDB_ROOT_PASSWORD=<INSERT PASSWORD> \
+  -p 27017:27017 \
+  mongo:4
 ```
 
-## Packaging and running the application
+* Create a free telegram bot at https://core.telegram.org/bots#3-how-do-i-create-a-bot and get its token
 
-The application can be packaged using `./mvnw package`.
-It produces the `sodexo-tg-bot-1.0.0-SNAPSHOT-runner.jar` file in the `/target` directory.
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/lib` directory.
+### Installation
 
-The application is now runnable using `java -jar target/sodexo-tg-bot-1.0.0-SNAPSHOT-runner.jar`.
+1. Clone the repo
+```sh
+git clone https://github.com/MisterRnobe/sodexo-tg-bot.git
+```
+2. Run
+```sh
+./mvnw quarkus:dev \
+    -DMONGO_URI="mongodb://<INSERT USERNAME>:<INSERT PASSWORD>@localhost:27017" \
+    -DBOT_TOKEN="<INSERT YOUR BOT TOKEN>"
+```
 
-## Creating a native executable
 
-You can create a native executable using: `./mvnw package -Pnative`.
 
-Or, if you don't have GraalVM installed, you can run the native executable build in a container using: `./mvnw package -Pnative -Dquarkus.native.container-build=true`.
+## Roadmap
+See the [open issues](https://github.com/MisterRnobe/sodexo-tg-bot/issues) for a list of proposed features (and known issues).
 
-You can then execute your native executable with: `./target/sodexo-tg-bot-1.0.0-SNAPSHOT-runner`
 
-If you want to learn more about building native executables, please consult https://quarkus.io/guides/building-native-image.
+## Contributing
+
+Contributions are what make the open source community such an amazing place to be learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+
+## License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+
+## Contact
+
+Reach out to me at one of the following places
+
+* [LinkedIn](https://www.linkedin.com/in/nikita-medvedev-643489190/)
