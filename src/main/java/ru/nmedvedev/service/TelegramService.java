@@ -57,6 +57,7 @@ public class TelegramService {
         }
     }
 
+    // TODO: 04/10/2020 Should be uni
     public void sendMessage(long chatId, Response response) {
         var request = responseToSendMessageConverter.convert(response, chatId);
         SendResponse sendResponse = telegramBot.execute(request);
