@@ -18,6 +18,7 @@ import ru.nmedvedev.view.ReplyButtonsProvider;
 import ru.nmedvedev.view.Response;
 
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import static org.mockito.Mockito.*;
@@ -39,6 +40,9 @@ public class BalanceChangeCheckerTest {
     private TelegramService telegramService;
     @Mock
     private ReplyButtonsProvider replyButtonsProvider;
+
+    private Consumer stubConsumer = (e) -> {
+    };
 
 
     @Test
@@ -64,7 +68,7 @@ public class BalanceChangeCheckerTest {
         when(sodexoClient.getByCard(anyString()))
                 .thenReturn(Uni.createFrom().item(sodexoResponse));
 
-        checker.check();
+        checker.check().subscribe().with(stubConsumer);
 
         verify(sodexoClient, times(1)).getByCard(card1);
         verify(sodexoClient, times(1)).getByCard(card2);
@@ -93,7 +97,7 @@ public class BalanceChangeCheckerTest {
         when(userRepository.persistOrUpdate((UserDb) any()))
                 .thenReturn(Uni.createFrom().voidItem());
 
-        checker.check();
+        checker.check().subscribe().with(stubConsumer);
 
         verify(userRepository, times(1))
                 .persistOrUpdate(argThat((ArgumentMatcher<UserDb>) userDb -> userDb.getLatestOperation().equals(
@@ -117,7 +121,7 @@ public class BalanceChangeCheckerTest {
                         UserDb.builder().chatId(CHAT).card(CARD).build()
                 ));
 
-        checker.check();
+        checker.check().subscribe().with(stubConsumer);
 
         verify(userRepository, never()).persistOrUpdate((UserDb) any());
         verifyNoInteractions(telegramService);
@@ -143,7 +147,7 @@ public class BalanceChangeCheckerTest {
         when(userRepository.persistOrUpdate((UserDb) any()))
                 .thenReturn(Uni.createFrom().voidItem());
 
-        checker.check();
+        checker.check().subscribe().with(stubConsumer);
 
         verify(replyButtonsProvider, times(1)).provideMenuButtons();
         verify(telegramService, times(1))
@@ -172,7 +176,7 @@ public class BalanceChangeCheckerTest {
         when(userRepository.persistOrUpdate((UserDb) any()))
                 .thenReturn(Uni.createFrom().voidItem());
 
-        checker.check();
+        checker.check().subscribe().with(stubConsumer);
 
         verify(replyButtonsProvider, times(1)).provideMenuButtons();
         verify(telegramService, times(1))
@@ -208,7 +212,7 @@ public class BalanceChangeCheckerTest {
         when(userRepository.persistOrUpdate((UserDb) any()))
                 .thenReturn(Uni.createFrom().voidItem());
 
-        checker.check();
+        checker.check().subscribe().with(stubConsumer);
 
         verify(replyButtonsProvider, times(1)).provideMenuButtons();
         verify(telegramService, times(1))

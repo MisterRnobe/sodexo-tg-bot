@@ -1,5 +1,7 @@
 package ru.nmedvedev.service;
 
+import io.smallrye.mutiny.Multi;
+import io.smallrye.mutiny.Uni;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import ru.nmedvedev.model.History;
@@ -39,9 +41,9 @@ public class BalanceChangeChecker {
         this.replyButtonsProvider = replyButtonsProvider;
     }
 
-    public void check() {
+    public Multi<?> check() {
         // TODO: 16/08/2020 Definitely it's not a good implementation
-        userRepository.findSubscribedWithCard()
+        return userRepository.findSubscribedWithCard()
                 .flatMap(userDb -> sodexoClient.getByCard(userDb.getCard())
                         .map(sr -> Map.entry(userDb, sr))
                         .toMulti())
@@ -49,7 +51,10 @@ public class BalanceChangeChecker {
                 .filter(not(tuple -> equalsHistories(tuple.getKey().getLatestOperation(), tuple.getValue().getData().getHistory().get(0))))
                 .map(this::updateUser)
                 .invokeUni(tuple -> userRepository.persistOrUpdate(tuple.getKey()))
-                .subscribe().with(tuple -> telegramService.sendMessage(tuple.getKey().getChatId(), tuple.getValue()));
+                .invokeUni(tuple -> Uni.createFrom().item(() -> {
+                    telegramService.sendMessage(tuple.getKey().getChatId(), tuple.getValue());
+                    return null;
+                }));
     }
 
     private Map.Entry<UserDb, Response> updateUser(Map.Entry<UserDb, SodexoResponse> tuple) {
