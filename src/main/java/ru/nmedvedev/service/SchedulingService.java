@@ -5,6 +5,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.enterprise.context.ApplicationScoped;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 @Slf4j
 @ApplicationScoped
@@ -12,26 +15,40 @@ import javax.enterprise.context.ApplicationScoped;
 public class SchedulingService {
 
     private final BalanceChangeChecker checker;
+    private final AtomicInteger invocationCounter = new AtomicInteger(0);
+
+    private static final int PRINT_EVERY_COUNT = 1800;
 
     public void startBalanceChangeChecking() {
         checker.check()
-                .onTermination().invokeUni(this::reInvoke)
-                .onFailure().invokeUni(this::printErrorAndReInvoke)
+                .onCompletion().invoke(logCompletion())
+                .onTermination().invokeUni(reInvoke())
+                .onFailure().invokeUni(printErrorAndReInvoke())
                 .subscribe().with(item -> log.info("Updated user {}", item));
     }
 
-    private Uni<Void> reInvoke(Throwable throwable, Boolean aBoolean) {
-        return Uni.createFrom().item(() -> {
+    private BiFunction<Throwable, Boolean, Uni<?>> reInvoke() {
+        return (t, b) -> Uni.createFrom().item(() -> {
             startBalanceChangeChecking();
             return null;
         });
     }
 
-    private Uni<Void> printErrorAndReInvoke(Throwable t) {
-        return Uni.createFrom().item(() -> {
+    private Function<Throwable, ? extends Uni<?>> printErrorAndReInvoke() {
+        return (t) -> Uni.createFrom().item(() -> {
             log.error("Failed balance check process with error", t);
             startBalanceChangeChecking();
             return null;
         });
+    }
+
+    private Runnable logCompletion() {
+        return () -> {
+            var count = invocationCounter.incrementAndGet();
+            if (count % PRINT_EVERY_COUNT == 0) {
+                log.info("Completed balance check task #{}", count);
+                invocationCounter.set(0);
+            }
+        };
     }
 }
