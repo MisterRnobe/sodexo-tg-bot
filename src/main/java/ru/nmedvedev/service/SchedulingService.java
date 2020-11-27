@@ -3,8 +3,10 @@ package ru.nmedvedev.service;
 import io.smallrye.mutiny.Uni;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.microprofile.context.ManagedExecutor;
 
 import javax.enterprise.context.ApplicationScoped;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -15,9 +17,30 @@ import java.util.function.Function;
 public class SchedulingService {
 
     private final BalanceChangeChecker checker;
+    private final ManagedExecutor executor;
     private final AtomicInteger invocationCounter = new AtomicInteger(0);
 
     private static final int PRINT_EVERY_COUNT = 1800;
+
+    public void startBalanceChangeCheckingNonReactive() {
+        try {
+            executor
+                    .runAsync(() ->{
+                        while (true) {
+                            try {
+                                checker.checkNonReactive();
+                            } catch (Exception e) {
+                                log.error("Exception occurred", e);
+                            } finally {
+                                logCompletion().run();
+                            }
+                        }
+                    })
+                    .get();
+        } catch (InterruptedException | ExecutionException e) {
+            log.error("Exception occurred inside executor", e);
+        }
+    }
 
     public void startBalanceChangeChecking() {
         checker.check()
@@ -47,7 +70,6 @@ public class SchedulingService {
             var count = invocationCounter.incrementAndGet();
             if (count % PRINT_EVERY_COUNT == 0) {
                 log.info("Completed balance check task #{}", count);
-                invocationCounter.set(0);
             }
         };
     }
