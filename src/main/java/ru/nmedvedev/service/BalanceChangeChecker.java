@@ -14,6 +14,7 @@ import ru.nmedvedev.view.ReplyButtonsProvider;
 import ru.nmedvedev.view.Response;
 
 import javax.enterprise.context.ApplicationScoped;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
@@ -39,6 +40,26 @@ public class BalanceChangeChecker {
         this.userRepository = userRepository;
         this.telegramService = telegramService;
         this.replyButtonsProvider = replyButtonsProvider;
+    }
+
+    public void checkNonReactive() {
+        var entries = userRepository.findSubscribedWithCard()
+                .flatMap(userDb -> sodexoClient.getByCard(userDb.getCard())
+                        .map(sr -> Map.entry(userDb, sr))
+                        .toMulti())
+                .onFailure().recoverWithMulti(Multi.createFrom().empty())
+                .collectItems().asList().await().atMost(Duration.ofSeconds(10L));
+        for (var entry : entries) {
+            var userDb = entry.getKey();
+            var sodexoResponse = entry.getValue();
+            if (sodexoResponse.getData().getHistory().isEmpty() ||
+                    equalsHistories(userDb.getLatestOperation(), sodexoResponse.getData().getHistory().get(0))) {
+                continue;
+            }
+            var updatedUser = this.updateUser(entry);
+            userRepository.persistOrUpdate(updatedUser.getKey()).await().atMost(Duration.ofSeconds(10L));
+            telegramService.sendMessage(updatedUser.getKey().getChatId(), updatedUser.getValue());
+        }
     }
 
     public Multi<?> check() {
