@@ -61,7 +61,7 @@ public class NotificationSubscriptionHandler implements InputTextHandler {
                     .map(latest -> new HistoryDb(latest.getAmount(), latest.getCurrency(), latest.getLocationName().get(0), latest.getTime()))
                     .map(historyDb -> UserDb
                             .builder()
-                            .id(userDb.id)
+                            .id(userDb.getId())
                             .card(userDb.getCard())
                             .chatId(userDb.getChatId())
                             .subscribed(userDb.getSubscribed())

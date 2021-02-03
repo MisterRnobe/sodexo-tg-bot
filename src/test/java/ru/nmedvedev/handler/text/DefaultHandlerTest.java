@@ -77,7 +77,7 @@ class DefaultHandlerTest {
         var actual = defaultHandler.handle(CHAT, CARD).await().indefinitely();
 
         verify(sodexoClient, times(1)).getByCard(CARD);
-        var expectedToSave = UserDb.builder().id(user.id).chatId(CHAT).card(CARD).build();
+        var expectedToSave = UserDb.builder().id(user.getId()).chatId(CHAT).card(CARD).build();
         verify(userRepository, times(1)).persistOrUpdate(expectedToSave);
         verify(replyButtonsProvider, times(1)).provideMenuButtons();
         assertEquals(Response.withReplyButtons("Я сохранил карту " + CARD, replyButtonsProvider.provideMenuButtons()), actual);
