@@ -26,11 +26,14 @@ public class SpendMoneyReminderService {
 
     @Scheduled(cron = "0 0 12 * * ?")
     public void sendReminders() {
+        log.info("Send spend money reminder cron triggered");
         ReminderDayEnum day = remindDayProviderService.getDay(LocalDate.now());
         if (day == ReminderDayEnum.NOT_A_DAY_FOR_A_REMINDER) {
+            log.info("It is NOT a day for a reminder");
             return;
         }
 
+        log.info("It IS a day for a reminder indeed: {}", day.name());
         userRepository.findSubscribedToSpendMoneyReminderWithCardAndChat()
                 .filter(user -> Optional.ofNullable(user.getLatestOperation()).map(HistoryDb::getAmount)
                         .map(amountt -> spendMoneyReminderBusinessLogicGateService.needToSendNotification(day, amountt))
