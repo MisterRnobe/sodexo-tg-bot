@@ -48,7 +48,7 @@ class SpendMoneyReminderServiceTest {
 
     @Test
     void doNotSendIfUserHasNoAmount() {
-        when(remindDayProviderService.getDay(any())).thenReturn(ReminderDayEnum.LAST_WORKING_DAY);
+        when(remindDayProviderService.getDay(any())).thenReturn(ReminderDayEnum.LAST_WORKING_DAY_MINUS_ONE);
         when(userRepository.findSubscribedToSpendMoneyReminderWithCardAndChat())
                 .thenReturn(Multi.createFrom().items(
                         UserDb.builder().build()
@@ -61,7 +61,7 @@ class SpendMoneyReminderServiceTest {
 
     @Test
     void doNotSendIfUserFailedBusinessLogicGate() {
-        when(remindDayProviderService.getDay(any())).thenReturn(ReminderDayEnum.LAST_WORKING_DAY);
+        when(remindDayProviderService.getDay(any())).thenReturn(ReminderDayEnum.LAST_WORKING_DAY_MINUS_ONE);
         when(userRepository.findSubscribedToSpendMoneyReminderWithCardAndChat())
                 .thenReturn(Multi.createFrom().items(
                         UserDb.builder().latestOperation(HistoryDb.builder().amount(100.).build()).build()
@@ -74,7 +74,7 @@ class SpendMoneyReminderServiceTest {
 
     @Test
     void sendIfEverythingIsOk() {
-        when(remindDayProviderService.getDay(any())).thenReturn(ReminderDayEnum.LAST_WORKING_DAY);
+        when(remindDayProviderService.getDay(any())).thenReturn(ReminderDayEnum.LAST_WORKING_DAY_MINUS_ONE);
         when(userRepository.findSubscribedToSpendMoneyReminderWithCardAndChat())
                 .thenReturn(Multi.createFrom().items(
                         UserDb.builder()
