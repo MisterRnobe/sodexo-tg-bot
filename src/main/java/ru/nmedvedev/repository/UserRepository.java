@@ -23,4 +23,13 @@ public class UserRepository implements ReactivePanacheMongoRepository<UserDb> {
                 "card", new Document("$ne", null))))
                 .stream();
     }
+
+    public Multi<UserDb> findSubscribedToSpendMoneyReminderWithCardAndChat() {
+        return find(new Document(Map.of(
+                "subscribedToSpendMoneyReminder", true,
+                "card", new Document("$ne", null),
+                "chatId", new Document("$ne", null)
+                )))
+                .stream();
+    }
 }
