@@ -19,7 +19,7 @@ public class UserDb {
     private Long chatId;
     private String card;
     private Boolean subscribed = false;
-    private Boolean subscribedToSpendMoneyReminder = false;
+    private boolean subscribedToSpendMoneyReminder = false;
     private HistoryDb latestOperation = null;
 
     @Deprecated(forRemoval = true)
