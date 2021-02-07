@@ -13,3 +13,10 @@ ru:
       SodexoClient/mp-rest/uri: https://restaurantpass.gift-cards.ru/
 scheduling:
   everySeconds: 2
+
+spend-money-reminder:
+  allowed-ballance:
+    half-month: 1500
+    last-minus-four: 1000
+    last-minus-three: 500
+    last-minus-one: 400
