@@ -26,8 +26,13 @@ public class SpendMoneyReminderService {
 
     @Scheduled(cron = "0 0 12 * * ?")
     public void sendReminders() {
-        log.info("Send spend money reminder cron triggered");
-        ReminderDayEnum day = remindDayProviderService.getDay(LocalDate.now());
+        LocalDate date = LocalDate.now();
+        sendRemindersForDate(date);
+    }
+
+    public void sendRemindersForDate(LocalDate date) {
+        log.info("Send spend money reminder cron triggered for date {}", date);
+        ReminderDayEnum day = remindDayProviderService.getDay(date);
         if (day == ReminderDayEnum.NOT_A_DAY_FOR_A_REMINDER) {
             log.info("It is NOT a day for a reminder");
             return;
