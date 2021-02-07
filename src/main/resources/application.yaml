@@ -15,8 +15,7 @@ scheduling:
   everySeconds: 2
 
 spend-money-reminder:
-  allowed-ballance:
-    half-month: 1500
-    last-minus-four: 1000
-    last-minus-three: 500
-    last-minus-one: 400
+  half-month-allowed-balance: 1500
+  last-working-day-minus-four-allowed-balance: 1000
+  last-working-day-minus-three-allowed-balance: 500
+  last-working-day-minus-one-allowed-balance: 400
