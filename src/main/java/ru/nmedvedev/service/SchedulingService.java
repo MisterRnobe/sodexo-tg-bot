@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.context.ManagedExecutor;
 
 import javax.enterprise.context.ApplicationScoped;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -25,7 +24,7 @@ public class SchedulingService {
     public void startBalanceChangeCheckingNonReactive() {
         try {
             executor
-                    .runAsync(() ->{
+                    .runAsync(() -> {
                         while (true) {
                             try {
                                 checker.checkNonReactive();
@@ -35,9 +34,8 @@ public class SchedulingService {
                                 logCompletion().run();
                             }
                         }
-                    })
-                    .get();
-        } catch (InterruptedException | ExecutionException e) {
+                    });
+        } catch (Exception e) {
             log.error("Exception occurred inside executor", e);
         }
     }
