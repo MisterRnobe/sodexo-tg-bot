@@ -1,14 +1,15 @@
 package ru.nmedvedev.service.spendmoneyreminder;
 
 import io.smallrye.mutiny.Multi;
+import io.smallrye.mutiny.Uni;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import ru.nmedvedev.model.HistoryDb;
 import ru.nmedvedev.model.UserDb;
 import ru.nmedvedev.repository.UserRepository;
+import ru.nmedvedev.rest.SodexoCustomClient;
 import ru.nmedvedev.service.TelegramService;
 import ru.nmedvedev.view.ReplyButtonsProvider;
 
@@ -33,8 +34,11 @@ class SpendMoneyReminderServiceTest {
     private TelegramService telegramService;
     @Mock
     private ReplyButtonsProvider replyButtonsProvider;
+    @Mock
+    private SodexoCustomClient sodexoClient;
 
     private static final Long CHAT_ID = new Random().nextLong();
+    public static final String CARD = "CARD";
 
     @Test
     void doNotFireAnyReminderOnAWrongDay() {
@@ -44,19 +48,7 @@ class SpendMoneyReminderServiceTest {
         verifyNoInteractions(userRepository);
         verifyNoInteractions(telegramService);
         verifyNoInteractions(replyButtonsProvider);
-    }
-
-    @Test
-    void doNotSendIfUserHasNoCard() {
-        when(remindDayProviderService.getDay(any())).thenReturn(ReminderDayEnum.LAST_WORKING_DAY_MINUS_ONE);
-        when(userRepository.findSubscribedToSpendMoneyReminderWithCardAndChat())
-                .thenReturn(Multi.createFrom().items(
-                        UserDb.builder().build()
-                ));
-
-        service.sendReminders();
-        verifyNoInteractions(telegramService);
-        verifyNoInteractions(spendMoneyReminderBusinessLogicGateService);
+        verifyNoInteractions(sodexoClient);
     }
 
     @Test
@@ -64,8 +56,9 @@ class SpendMoneyReminderServiceTest {
         when(remindDayProviderService.getDay(any())).thenReturn(ReminderDayEnum.LAST_WORKING_DAY_MINUS_ONE);
         when(userRepository.findSubscribedToSpendMoneyReminderWithCardAndChat())
                 .thenReturn(Multi.createFrom().items(
-                        UserDb.builder().latestOperation(HistoryDb.builder().amount(100.).build()).build()
+                        UserDb.builder().card(CARD).build()
                 ));
+        when(sodexoClient.getAmount(CARD)).thenReturn(Uni.createFrom().item(100.));
         when(spendMoneyReminderBusinessLogicGateService.needToSendNotification(any(), eq(100.))).thenReturn(false);
 
         service.sendReminders();
@@ -77,11 +70,9 @@ class SpendMoneyReminderServiceTest {
         when(remindDayProviderService.getDay(any())).thenReturn(ReminderDayEnum.LAST_WORKING_DAY_MINUS_ONE);
         when(userRepository.findSubscribedToSpendMoneyReminderWithCardAndChat())
                 .thenReturn(Multi.createFrom().items(
-                        UserDb.builder()
-                                .chatId(CHAT_ID)
-                                .latestOperation(HistoryDb.builder().amount(100.).build())
-                                .build()
+                        UserDb.builder().card(CARD).chatId(CHAT_ID).build()
                 ));
+        when(sodexoClient.getAmount(CARD)).thenReturn(Uni.createFrom().item(100.));
         when(spendMoneyReminderBusinessLogicGateService.needToSendNotification(any(), eq(100.))).thenReturn(true);
 
         service.sendReminders();

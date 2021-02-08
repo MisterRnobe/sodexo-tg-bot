@@ -20,4 +20,5 @@ public interface SodexoClient {
     @Produces("application/json")
     @ClientHeaderParam(name = "X-Requested-With", value = "XMLHttpRequest")
     Uni<SodexoResponse> getByCard(@PathParam(value = "card") String card);
+
 }
