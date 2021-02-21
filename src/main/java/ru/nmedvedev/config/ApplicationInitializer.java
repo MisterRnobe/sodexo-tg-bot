@@ -13,6 +13,7 @@ public class ApplicationInitializer {
     ApplicationInitializer(IndexVerifier indexVerifier,
                            SchedulingService schedulingService) {
         indexVerifier.createIndexesIfNotExist();
-        schedulingService.startBalanceChangeCheckingNonReactive();
+//        schedulingService.startBalanceChangeCheckingNonReactive();
+        schedulingService.startBalanceChangeChecking();
     }
 }

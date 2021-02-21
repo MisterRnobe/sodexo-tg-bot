@@ -1,8 +1,10 @@
 package ru.nmedvedev.service;
 
+import com.pengrad.telegrambot.Callback;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Update;
+import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.response.SendResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -11,8 +13,8 @@ import ru.nmedvedev.service.converter.ResponseToSendMessageConverter;
 import ru.nmedvedev.view.Response;
 
 import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.Dependent;
+import java.io.IOException;
 import java.time.Duration;
 
 
@@ -60,10 +62,15 @@ public class TelegramService {
     // TODO: 04/10/2020 Should be uni
     public void sendMessage(long chatId, Response response) {
         var request = responseToSendMessageConverter.convert(response, chatId);
-        SendResponse sendResponse = telegramBot.execute(request);
-
-        if (!sendResponse.isOk()) {
-            log.warn("Error occurred when sending message {}, response text: {}", request, sendResponse.message());
-        }
+        telegramBot.execute(request, new Callback<>() {
+            @Override
+            public void onResponse(SendMessage sendMessage, SendResponse sendResponse) {
+                // Do nothing
+            }
+            @Override
+            public void onFailure(SendMessage sendMessage, IOException e) {
+                log.warn("Error occurred when sending message {}, exception: {}", request, e);
+            }
+        });
     }
 }
