@@ -47,8 +47,6 @@ class TelegramServiceTest {
                 .thenReturn(Optional.of(handler));
         when(responseToSendMessageConverter.convert(response, CHAT))
                 .thenReturn(new SendMessage(CHAT, text));
-        when(telegramBot.execute(any()))
-                .thenReturn(sendResponse());
 
         telegramService.onUpdateReceived(getUpdateWith(Map.of(
                 "message", getMessage(CHAT, text)
@@ -61,7 +59,7 @@ class TelegramServiceTest {
         verify(responseToSendMessageConverter, times(1))
                 .convert(response, CHAT);
         verify(telegramBot, times(1))
-                .execute(responseToSendMessageConverter.convert(response, CHAT));
+                .execute(eq(responseToSendMessageConverter.convert(response, CHAT)), any());
     }
 
     @Test
@@ -78,8 +76,6 @@ class TelegramServiceTest {
                 .thenReturn(handler);
         when(responseToSendMessageConverter.convert(response, CHAT))
                 .thenReturn(new SendMessage(CHAT, text));
-        when(telegramBot.execute(any()))
-                .thenReturn(sendResponse());
 
         telegramService.onUpdateReceived(getUpdateWith(Map.of(
                 "message", getMessage(CHAT, text)
@@ -94,7 +90,7 @@ class TelegramServiceTest {
         verify(responseToSendMessageConverter, times(1))
                 .convert(response, CHAT);
         verify(telegramBot, times(1))
-                .execute(responseToSendMessageConverter.convert(response, CHAT));
+                .execute(eq(responseToSendMessageConverter.convert(response, CHAT)), any());
     }
 
     @SneakyThrows
