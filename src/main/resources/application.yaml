@@ -11,8 +11,8 @@ ru:
   nmedvedev:
     rest:
       SodexoClient/mp-rest/uri: https://restaurantpass.gift-cards.ru/
-scheduling:
-  everySeconds: 2
+balance-check:
+  every: ${BALANCE_CHECK_EVERY:15m}
 
 spend-money-reminder:
   half-month-allowed-balance: 1500
