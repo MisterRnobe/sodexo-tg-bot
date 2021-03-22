@@ -26,16 +26,3 @@ jobs:
           dockerfile: ./src/main/docker/Dockerfile.jvm
           tags: latest
           tag_with_ref: true
-      - name: Deploy to server
-        run: >
-          mkdir ~/.ssh &&
-          echo "$SSH_KEY" > ~/.ssh/id_rsa &&
-          echo "$ENV" > .env &&
-          export DOCKER_HOST=$DOCKER_HOST &&
-          export TAG=${GITHUB_REF##*/} &&
-          docker-compose up -d
-        env:
-          SSH_KEY: ${{secrets.SSH_KEY}}
-          ENV: ${{secrets.ENV}}
-          DOCKER_HOST: ${{secrets.DOCKER_HOST}}
-
