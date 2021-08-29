@@ -23,7 +23,7 @@ public class RemoveCardHandler implements InputTextHandler {
     @Override
     public Uni<Response> handle(Long chatId, String text) {
         return userRepository.findByChatId(chatId)
-                .onItem().ifNotNull().produceUni(userDb -> {
+                .onItem().ifNotNull().transformToUni(userDb -> {
                     if (userDb.getCard() == null) {
                         // TODO: 14/08/2020 should be error?
                         return Uni.createFrom().item(Response.fromText("Вы не задали карту"));

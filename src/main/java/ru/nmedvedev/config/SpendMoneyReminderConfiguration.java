@@ -1,11 +1,11 @@
 package ru.nmedvedev.config;
 
 
-import io.quarkus.arc.config.ConfigProperties;
+import io.smallrye.config.ConfigMapping;
 import lombok.Data;
 
-@ConfigProperties(prefix = "spend-money-reminder")
 @Data
+@ConfigMapping(prefix = "spend-money-reminder")
 public class SpendMoneyReminderConfiguration {
 
     double halfMonthAllowedBalance;

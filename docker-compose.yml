@@ -19,4 +19,5 @@ services:
     restart: unless-stopped
     volumes:
       - /data/mongodb:/data/db
-
+    ports:
+      - "27017:27017"

@@ -48,7 +48,7 @@ public class NotificationSubscriptionHandler implements InputTextHandler {
                 : "Теперь я вам не буду сообщать о всех зачислениям и списаниях";
         return Uni.createFrom().item(userDb)
                 .onItem().transformToUni(this::updateLatestOperation)
-                .invokeUni(userRepository::persistOrUpdate)
+                .onItem().transform(userRepository::persistOrUpdate)
                 .map(v -> Response.withReplyButtons(message, replyButtonsProvider.provideMenuButtons()));
     }
 

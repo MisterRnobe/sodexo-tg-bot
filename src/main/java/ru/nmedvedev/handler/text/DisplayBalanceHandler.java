@@ -35,13 +35,13 @@ public class DisplayBalanceHandler implements InputTextHandler {
     public Uni<Response> handle(Long chatId, String text) {
         return userRepository.findByChatId(chatId)
                 // TODO: 15/08/2020 WTF, how to get rid of .onItem().ifNotNull()????
-                .onItem().ifNotNull().apply(UserDb::getCard)
-                .onItem().ifNotNull().produceUni(sodexoClient::getByCard)
-                .onItem().ifNotNull().apply(response -> String.format(
+                .onItem().ifNotNull().transform(UserDb::getCard)
+                .onItem().ifNotNull().transformToUni(sodexoClient::getByCard)
+                .onItem().ifNotNull().transform(response -> String.format(
                         "Ваш баланс %.2f %s",
                         response.getData().getBalance().getAvailableAmount(),
                         "руб"))
-                .onItem().ifNotNull().apply(str -> Response.withReplyButtons(str, replyButtonsProvider.provideMenuButtons()))
+                .onItem().ifNotNull().transform(str -> Response.withReplyButtons(str, replyButtonsProvider.provideMenuButtons()))
                 .onItem().ifNull().continueWith(() -> Response.fromText("Вы не ввели карту"));
     }
 }

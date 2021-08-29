@@ -42,7 +42,7 @@ class SpendMoneyReminderHandlerTest {
     void setUp() {
         when(replyButtonsProvider.provideMenuButtons()).thenReturn(List.of("1", "2"));
         when(userRepository.persistOrUpdate((UserDb) any()))
-                .thenReturn(Uni.createFrom().voidItem());
+                .thenAnswer(invocationOnMock -> Uni.createFrom().item(invocationOnMock.getArgument(0)));
     }
 
     @Test

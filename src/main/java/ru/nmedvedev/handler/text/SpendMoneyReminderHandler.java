@@ -41,7 +41,7 @@ public class SpendMoneyReminderHandler implements InputTextHandler {
             : UNSUBSCRIBE_MESSAGE;
     return Uni.createFrom().item(userDb)
             .onItem()
-            .invokeUni(userRepository::persistOrUpdate)
+            .call(userRepository::persistOrUpdate)
             .map(v -> Response.withReplyButtons(message, replyButtonsProvider.provideMenuButtons()));
   }
 }

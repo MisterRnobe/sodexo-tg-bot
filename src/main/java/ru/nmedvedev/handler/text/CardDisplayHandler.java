@@ -25,8 +25,8 @@ public class CardDisplayHandler implements InputTextHandler {
     @Override
     public Uni<Response> handle(Long chatId, String text) {
         return userRepository.findByChatId(chatId)
-                .onItem().ifNotNull().apply(UserDb::getCard)
-                .onItem().ifNotNull().apply(card -> Response.withReplyButtons("Ваша карта " + card, replyButtonsProvider.provideMenuButtons()))
+                .onItem().ifNotNull().transform(UserDb::getCard)
+                .onItem().ifNotNull().transform(card -> Response.withReplyButtons("Ваша карта " + card, replyButtonsProvider.provideMenuButtons()))
                 .onItem().ifNull().continueWith(() -> Response.fromText("Вы не ввели карту"));
     }
 }

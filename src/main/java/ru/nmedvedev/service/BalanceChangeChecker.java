@@ -49,8 +49,8 @@ public class BalanceChangeChecker {
                 .filter(not(tuple -> tuple.getValue().getData().getHistory().isEmpty()))
                 .filter(not(tuple -> equalsHistories(tuple.getKey().getLatestOperation(), tuple.getValue().getData().getHistory().get(0))))
                 .map(this::updateUser)
-                .invokeUni(tuple -> userRepository.persistOrUpdate(tuple.getKey()))
-                .invokeUni(tuple -> Uni.createFrom().item(() -> {
+                .call(tuple -> userRepository.persistOrUpdate(tuple.getKey()))
+                .call(tuple -> Uni.createFrom().item(() -> {
                     telegramService.sendMessage(tuple.getKey().getChatId(), tuple.getValue());
                     return null;
                 }));

@@ -95,7 +95,7 @@ public class BalanceChangeCheckerTest {
                         UserDb.builder().chatId(CHAT).card(CARD).latestOperation(latestOperation).build()
                 ));
         when(userRepository.persistOrUpdate((UserDb) any()))
-                .thenReturn(Uni.createFrom().voidItem());
+                .thenAnswer(invocationOnMock -> Uni.createFrom().item(invocationOnMock.getArgument(0)));
 
         checker.check().subscribe().with(stubConsumer);
 
