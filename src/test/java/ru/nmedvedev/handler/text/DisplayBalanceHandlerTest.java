@@ -79,7 +79,17 @@ class DisplayBalanceHandlerTest {
     }
 
     @Test
-    void shouldReturnErrorWithMenuButtonsIfSodexoClientFailed() {
+    void shouldReturnCardIsInactiveForAppropriateStatus() {
+        when(userRepository.findByChatId(CHAT))
+                .thenReturn(Uni.createFrom().item(UserDb.builder().card(CARD).build()));
 
+        when(sodexoClient.getByCard(CARD))
+                .thenReturn(Uni.createFrom().item(new SodexoResponse("CARD_IS_NOT_ACTIVE", null)));
+        // When
+        var actual = handler.handle(CHAT, "").await().indefinitely();
+        // Then
+        verify(replyButtonsProvider, never()).provideMenuButtons();
+        var expected = Response.fromText("Ваша карта устарела или по другим причинам не активна. Пожалуйста, удалите её и введите новую");
+        assertEquals(expected, actual);
     }
 }

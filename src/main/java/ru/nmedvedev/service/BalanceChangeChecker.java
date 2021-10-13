@@ -9,6 +9,7 @@ import ru.nmedvedev.model.HistoryDb;
 import ru.nmedvedev.model.SodexoResponse;
 import ru.nmedvedev.model.UserDb;
 import ru.nmedvedev.repository.UserRepository;
+import ru.nmedvedev.rest.Constants;
 import ru.nmedvedev.rest.SodexoClient;
 import ru.nmedvedev.view.ReplyButtonsProvider;
 import ru.nmedvedev.view.Response;
@@ -46,6 +47,7 @@ public class BalanceChangeChecker {
                 .flatMap(userDb -> sodexoClient.getByCard(userDb.getCard())
                         .map(sr -> Map.entry(userDb, sr))
                         .toMulti())
+                .filter(this::checkStatus)
                 .filter(not(tuple -> tuple.getValue().getData().getHistory().isEmpty()))
                 .filter(not(tuple -> equalsHistories(tuple.getKey().getLatestOperation(), tuple.getValue().getData().getHistory().get(0))))
                 .map(this::updateUser)
@@ -53,7 +55,20 @@ public class BalanceChangeChecker {
                 .invokeUni(tuple -> Uni.createFrom().item(() -> {
                     telegramService.sendMessage(tuple.getKey().getChatId(), tuple.getValue());
                     return null;
-                }));
+                }))
+                .onFailure().invoke(error -> log.error("Error occurred on balance check", error));
+    }
+
+    private boolean checkStatus(Map.Entry<UserDb, SodexoResponse> userDbSodexoResponseTuple) {
+        if (userDbSodexoResponseTuple.getValue().getStatus().equals(Constants.OK_STATUS)) {
+            return true;
+        } else {
+            log.info(
+                    "Non ok status {} for chat {}",
+                    userDbSodexoResponseTuple.getValue().getStatus(),
+                    userDbSodexoResponseTuple.getKey().getChatId());
+            return false;
+        }
     }
 
     private Map.Entry<UserDb, Response> updateUser(Map.Entry<UserDb, SodexoResponse> tuple) {

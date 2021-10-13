@@ -93,6 +93,33 @@ class TelegramServiceTest {
                 .execute(eq(responseToSendMessageConverter.convert(response, CHAT)), any());
     }
 
+    @Test
+    void shouldReturnErrorMessageIfFailed() {
+        var text = "123";
+        var handler = mock(InputTextHandler.class);
+        var response = Response.fromText("Произошла ошибка, повторите попытку");
+
+        when(handler.handle(anyLong(), anyString()))
+                .thenReturn(Uni.createFrom().failure(new RuntimeException("Hello world")));
+        when(callbackResolver.getTextHandler(text))
+                .thenReturn(Optional.of(handler));
+        when(responseToSendMessageConverter.convert(response, CHAT))
+                .thenReturn(new SendMessage(CHAT, text));
+
+        telegramService.onUpdateReceived(getUpdateWith(Map.of(
+                "message", getMessage(CHAT, text)
+        )));
+
+        verify(callbackResolver, times(1))
+                .getTextHandler(text);
+        verify(handler, times(1))
+                .handle(CHAT, text);
+        verify(responseToSendMessageConverter, times(1))
+                .convert(response, CHAT);
+        verify(telegramBot, times(1))
+                .execute(eq(responseToSendMessageConverter.convert(response, CHAT)), any());
+    }
+
     @SneakyThrows
     private SendResponse sendResponse() {
         var constructor = SendResponse.class.getDeclaredConstructor();
