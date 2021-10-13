@@ -6,6 +6,7 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import ru.nmedvedev.handler.InputTextHandler;
 import ru.nmedvedev.model.UserDb;
 import ru.nmedvedev.repository.UserRepository;
+import ru.nmedvedev.rest.Constants;
 import ru.nmedvedev.rest.SodexoClient;
 import ru.nmedvedev.view.ReplyButtonsProvider;
 import ru.nmedvedev.view.Response;
@@ -50,7 +51,7 @@ public class DefaultHandler implements InputTextHandler {
 
                 return sodexoClient.getByCard(noSpacesCard)
                         .flatMap(sodexoResponse -> {
-                            if (sodexoResponse.getStatus().equals("OK")) {
+                            if (sodexoResponse.getStatus().equals(Constants.OK_STATUS)) {
                                 var userDb = Optional.ofNullable(byChatId)
                                         .orElseGet(() ->
                                                 UserDb.builder()
@@ -60,6 +61,10 @@ public class DefaultHandler implements InputTextHandler {
                                 userDb.setCard(noSpacesCard);
                                 return userRepository.persistOrUpdate(userDb)
                                         .map(v -> Response.withReplyButtons("Я сохранил карту " + noSpacesCard, replyButtonsProvider.provideMenuButtons()));
+                            } else if (sodexoResponse.getStatus().equals(Constants.CARD_IS_NOT_ACTIVE_STATUS)) {
+                                return Uni
+                                        .createFrom()
+                                        .item(Response.fromText("Карта" + text + " устарела или не активна по другим причинам, повторите ввод"));
                             } else {
                                 // TODO: 13/08/2020 use localization
                                 return Uni

@@ -12,6 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import ru.nmedvedev.model.SodexoResponse;
 import ru.nmedvedev.model.UserDb;
 import ru.nmedvedev.repository.UserRepository;
+import ru.nmedvedev.rest.Constants;
 import ru.nmedvedev.rest.SodexoClient;
 import ru.nmedvedev.view.ReplyButtonsProvider;
 import ru.nmedvedev.view.Response;
@@ -96,6 +97,24 @@ class DefaultHandlerTest {
         var actual = defaultHandler.handle(CHAT, CARD).await().indefinitely();
 
         assertEquals(Response.fromText("Карты " + CARD + " не существует, повторите ввод"), actual);
+        verify(sodexoClient, times(1)).getByCard(CARD);
+        verify(userRepository, never()).persist((UserDb) any());
+        verifyNoInteractions(replyButtonsProvider);
+    }
+
+    @Test
+    void shouldReturnCardInvalidIfSodexoClientReturnedCardInactive() {
+        var sodexoResponse = new SodexoResponse();
+        sodexoResponse.setStatus(Constants.CARD_IS_NOT_ACTIVE_STATUS);
+
+        when(userRepository.findByChatId(CHAT))
+                .thenReturn(Uni.createFrom().nullItem());
+        when(sodexoClient.getByCard(CARD))
+                .thenReturn(Uni.createFrom().item(sodexoResponse));
+
+        var actual = defaultHandler.handle(CHAT, CARD).await().indefinitely();
+
+        assertEquals(Response.fromText("Карта" + CARD + " устарела или не активна по другим причинам, повторите ввод"), actual);
         verify(sodexoClient, times(1)).getByCard(CARD);
         verify(userRepository, never()).persist((UserDb) any());
         verifyNoInteractions(replyButtonsProvider);

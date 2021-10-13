@@ -7,12 +7,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.nmedvedev.model.*;
 import ru.nmedvedev.repository.UserRepository;
+import ru.nmedvedev.rest.Constants;
 import ru.nmedvedev.rest.SodexoClient;
 import ru.nmedvedev.view.ReplyButtonsProvider;
 import ru.nmedvedev.view.Response;
@@ -59,7 +61,7 @@ public class BalanceChangeCheckerTest {
                 ));
 
         var sodexoResponse = new SodexoResponse();
-        sodexoResponse.setStatus("OK");
+        sodexoResponse.setStatus(Constants.OK_STATUS);
         var data = new SodexoData();
         data.setHistory(List.of());
         data.setBalance(new Balance());
@@ -78,7 +80,7 @@ public class BalanceChangeCheckerTest {
     @ParameterizedTest
     void shouldUpdatePreviousLatestOperation(HistoryDb latestOperation) {
         var sodexoResponse = new SodexoResponse();
-        sodexoResponse.setStatus("OK");
+        sodexoResponse.setStatus(Constants.OK_STATUS);
         var data = new SodexoData();
         data.setHistory(List.of(
                 History.builder().amount(200d).currency("RUR").locationName(List.of("123")).time("2").build(),
@@ -108,7 +110,7 @@ public class BalanceChangeCheckerTest {
     @Test
     void shouldSendNothingIfHistoryIsEmpty() {
         var sodexoResponse = new SodexoResponse();
-        sodexoResponse.setStatus("OK");
+        sodexoResponse.setStatus(Constants.OK_STATUS);
         var data = new SodexoData();
         data.setHistory(List.of());
         sodexoResponse.setData(data);
@@ -131,7 +133,7 @@ public class BalanceChangeCheckerTest {
     @ParameterizedTest
     void shouldNotifyWithCurrentBalanceAndMenuButtons(Double amount, String operationMessage) {
         var sodexoResponse = new SodexoResponse();
-        sodexoResponse.setStatus("OK");
+        sodexoResponse.setStatus(Constants.OK_STATUS);
         var data = new SodexoData();
         data.setHistory(List.of(History.builder().amount(amount).currency("RUR").locationName(List.of("name")).build()));
         data.setBalance(new Balance(123.45, "RUR"));
@@ -157,7 +159,7 @@ public class BalanceChangeCheckerTest {
     @Test
     void shouldSendOneMessageWithManyOperationsAndSaveLatestIfLatestOperationIsNotPresent() {
         var sodexoResponse = new SodexoResponse();
-        sodexoResponse.setStatus("OK");
+        sodexoResponse.setStatus(Constants.OK_STATUS);
         var data = new SodexoData();
         data.setHistory(List.of(
                 History.builder().amount(100d).currency("RUR").locationName(List.of("name1")).time("zzz").build(),
@@ -192,7 +194,7 @@ public class BalanceChangeCheckerTest {
     @Test
     void shouldSendOneMessageWithManyOperationsAndSaveLatestIfLatestOperationIsPresent() {
         var sodexoResponse = new SodexoResponse();
-        sodexoResponse.setStatus("OK");
+        sodexoResponse.setStatus(Constants.OK_STATUS);
         var data = new SodexoData();
         data.setHistory(List.of(
                 History.builder().amount(100d).currency("RUR").locationName(List.of("name1")).time("zzz").build(),
@@ -223,6 +225,47 @@ public class BalanceChangeCheckerTest {
                 .card(CARD)
                 .latestOperation(new HistoryDb(100d, "RUR", "name1", "zzz"))
                 .build());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {Constants.CARD_IS_NOT_ACTIVE_STATUS, "blah-blah"})
+    void shouldIgnoreUsersWithNonOkStatusResponse(String status) {
+        var okChat = CHAT + 1;
+        var nonOkChat = CHAT - 1;
+
+        var okCard = CARD + "1";
+        var nonOkCard = CARD + "2";
+        when(userRepository.findSubscribedWithCard())
+                .thenReturn(Multi.createFrom().items(
+                        UserDb.builder().chatId(okChat).card(okCard).build(),
+                        UserDb.builder().chatId(nonOkChat).card(nonOkCard).build()
+                ));
+
+        var okResponse = new SodexoResponse();
+        okResponse.setStatus(Constants.OK_STATUS);
+        var data = new SodexoData();
+        data.setHistory(List.of(History.builder().amount(1d).currency("RUR").locationName(List.of("name")).build()));
+        data.setBalance(new Balance(123.45, "RUR"));
+        okResponse.setData(data);
+
+        var nonOkResponse = new SodexoResponse();
+        nonOkResponse.setStatus(status);
+
+        when(sodexoClient.getByCard(okCard))
+                .thenReturn(Uni.createFrom().item(okResponse));
+        when(sodexoClient.getByCard(nonOkCard))
+                .thenReturn(Uni.createFrom().item(nonOkResponse));
+
+        when(userRepository.persistOrUpdate((UserDb) any()))
+                .thenReturn(Uni.createFrom().voidItem());
+
+        // may be removed
+        when(replyButtonsProvider.provideMenuButtons()).thenReturn(List.of("1", "2"));
+
+        checker.check().subscribe().with(stubConsumer);
+
+        verify(replyButtonsProvider, times(1)).provideMenuButtons();
+        verify(telegramService, times(1)).sendMessage(eq(okChat), any());
     }
 
     // Providers

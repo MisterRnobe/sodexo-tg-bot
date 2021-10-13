@@ -6,6 +6,7 @@ import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.response.SendResponse;
+import io.smallrye.mutiny.Uni;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -47,6 +48,7 @@ public class TelegramService {
                 callbackResolver.getTextHandler(text)
                         .orElseGet(callbackResolver::defaultTextHandler)
                         .handle(chatId, text)
+                        .onFailure().recoverWithItem(this::recover)
                         .invoke(response -> sendMessage(chatId, response))
                         .await()
                         .atMost(Duration.ofSeconds(10L));
@@ -72,5 +74,10 @@ public class TelegramService {
                 log.warn("Error occurred when sending message {}, exception: {}", request, e);
             }
         });
+    }
+
+    private Response recover(Throwable throwable) {
+        log.error("Failed to process user", throwable);
+        return Response.fromText("Произошла ошибка, повторите попытку");
     }
 }
